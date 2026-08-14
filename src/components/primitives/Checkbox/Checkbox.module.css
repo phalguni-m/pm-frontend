@@ -1,0 +1,71 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.root:has(.input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.box {
+  position: relative;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-inner);
+  color: var(--text-inverted);
+  transition: background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+
+/* Hit area grows to 44px via a pseudo-element; the visual box stays 18px. */
+.box::before {
+  content: "";
+  position: absolute;
+  inset: -13px;
+}
+
+.input:checked + .box {
+  background: var(--bg-inverted);
+  border-color: var(--bg-inverted);
+}
+
+.input:focus-visible + .box {
+  outline: 2px solid var(--border-strong);
+  outline-offset: 2px;
+}
+
+.check {
+  opacity: 0;
+  transform: scale(0.7);
+  transition: opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+
+.input:checked + .box .check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.label {
+  font-size: var(--text-base);
+  color: var(--text-primary);
+}

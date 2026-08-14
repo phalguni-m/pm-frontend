@@ -1,0 +1,12 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  background: var(--bg-card);
+  border-radius: var(--radius-inner);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--text-tertiary);
+  line-height: 1.4;
+}

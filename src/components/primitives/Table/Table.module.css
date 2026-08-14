@@ -1,0 +1,288 @@
+.root {
+  width: 100%;
+}
+
+.headerRow {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  align-items: stretch;
+  height: 44px;
+  background: var(--bg-strip);
+  border-bottom: 1px solid var(--border);
+}
+
+.headerCell {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-4);
+  min-width: 0;
+}
+
+.headerCellButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.headerCellButton:hover {
+  color: var(--text-primary);
+}
+
+.headerCellStatic {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.sortIcon {
+  flex-shrink: 0;
+  display: inline-flex;
+  color: var(--text-tertiary);
+}
+
+.sortIconActive {
+  color: var(--text-primary);
+}
+
+/* display: contents removes .body from the box tree entirely (it carries no
+   visual styling of its own — only role="rowgroup") so .headerRow and every
+   .row become direct grid items of .gridView, one level up. That's required
+   for subgrid: a subgrid item can only inherit tracks from a parent that is
+   itself a grid container, and a display: flex wrapper in between would have
+   broken that chain. */
+.body {
+  display: contents;
+}
+
+.row {
+  position: relative;
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  align-items: stretch;
+  min-height: 52px;
+  border: none;
+  background: transparent;
+  border-bottom: 1px solid var(--border-subtle);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  padding: 0;
+}
+
+.row:hover {
+  background: var(--bg-hover);
+}
+
+.rowLast {
+  border-bottom: none;
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-4);
+  min-width: 0;
+  font-size: var(--text-base);
+  color: var(--text-primary);
+}
+
+.cellContent {
+  white-space: nowrap;
+}
+
+.firstCell {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.indentGutter {
+  flex-shrink: 0;
+  position: relative;
+  width: 32px;
+  height: 100%;
+}
+
+.indentGutterLine {
+  position: absolute;
+  top: 0;
+  left: 20px;
+  width: 1px;
+  height: 50%;
+  background: var(--border);
+}
+
+.indentGutterLineContinue::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 1px;
+  height: 50%;
+  background: var(--border);
+}
+
+.indentGutterStub {
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  width: 12px;
+  height: 1px;
+  background: var(--border);
+}
+
+.dragHandle {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 14px;
+  margin: -14px 0 -14px -12px;
+  color: var(--text-disabled);
+  opacity: 0;
+  cursor: grab;
+  transition: opacity var(--dur-instant) var(--ease);
+}
+
+.row:hover .dragHandle,
+.dragHandle:focus-visible {
+  opacity: 1;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.chevron {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-right: var(--space-1);
+  border: none;
+  border-radius: var(--radius-inner);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+
+/* Hit area grows to 44px via a pseudo-element so the 20px visual glyph is unaffected. */
+.chevron::before {
+  content: "";
+  position: absolute;
+  inset: -12px;
+}
+
+.chevron:hover {
+  background: var(--bg-active);
+}
+
+.chevronGlyph {
+  display: inline-flex;
+  transition: transform var(--dur-fast) var(--ease);
+}
+
+.chevronGlyphOpen {
+  transform: rotate(90deg);
+}
+
+.chevronSpacer {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin-right: var(--space-1);
+}
+
+/* .body's display: contents makes these direct grid items of .gridView too
+   (see .body comment above) — grid-column spans every track instead of
+   auto-placing into just the first one. */
+.emptyRow {
+  grid-column: 1 / -1;
+  padding: var(--space-8);
+}
+
+.loadingRow {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  height: 52px;
+  padding: 0 var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* ≤900px: low-priority columns (e.g. Deps, Risk) drop first to keep the
+   remaining columns legible without horizontal scroll. Both the template
+   (--table-cols, redeclared here so .headerRow/.row pick it up automatically)
+   and the individual cells switch together, so the remaining visible cells
+   always land in the reduced track list in DOM order. */
+@media (max-width: 899px) {
+  .gridView {
+    --table-cols: var(--table-cols-tablet);
+  }
+
+  .headerCellHideBelowTablet,
+  .cellHideBelowTablet {
+    display: none;
+  }
+}
+
+/* --- ≤640px: grid table becomes stacked cards; see TableCardView ---
+   .gridView is the one real grid container: it owns the actual track
+   definitions (--table-cols). .headerRow and every .row (including nested
+   ones — flattenRows makes them all direct children via .body's
+   display: contents) are subgrid items spanning every column, so they all
+   resolve against these same tracks instead of each computing their own. */
+.gridView {
+  display: grid;
+  grid-template-columns: var(--table-cols);
+  /* A grid container's default min-width is auto, i.e. "never shrink below
+     the sum of every track's own minimum" — for "content" columns that
+     minimum is min-content, which can still be wide. Without this, the grid
+     refuses to fit the card and overflows, and since minmax(160px, 1fr)
+     eventually loses that fight too, the one flexible column
+     (Task/Section/Project) is what would visibly collapse toward its floor
+     while the content columns spill past the card edge. */
+  min-width: 0;
+  width: 100%;
+  /* If every column's minimum still doesn't fit (e.g. eight SPEC-mandated
+     columns squeezed into a 1fr slot beside a fixed sidebar), let the table
+     scroll horizontally rather than silently clipping columns past the
+     card's own overflow: hidden (which exists for corner-radius clipping,
+     not to hide content). The header scrolls in lockstep since it's a
+     sibling grid item on these same tracks, not a separate element. */
+  overflow-x: auto;
+}
+
+.cardView {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  .gridView {
+    display: none;
+  }
+
+  .cardView {
+    display: flex;
+  }
+}

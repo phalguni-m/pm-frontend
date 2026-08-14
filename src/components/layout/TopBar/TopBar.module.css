@@ -1,0 +1,116 @@
+.root {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: calc(56px + env(safe-area-inset-top, 0px));
+  padding: env(safe-area-inset-top, 0px) 24px 0;
+}
+
+.navButtons {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.navButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius-inner);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.navButton:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.navButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.back {
+  transform: rotate(180deg);
+}
+
+.breadcrumbPill {
+  flex-shrink: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+}
+
+.hamburger {
+  display: none;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.hamburger:hover {
+  background: var(--bg-hover);
+}
+
+.actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.mobileAction {
+  display: none;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.mobileAction:hover {
+  background: var(--bg-hover);
+}
+
+@media (max-width: 899px) {
+  .root {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--bg-canvas);
+  }
+
+  .hamburger,
+  .mobileAction {
+    display: flex;
+  }
+
+  .navButtons,
+  .actions {
+    display: none;
+  }
+}

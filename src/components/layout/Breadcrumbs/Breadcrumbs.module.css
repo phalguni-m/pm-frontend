@@ -1,0 +1,49 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-base);
+  color: var(--text-tertiary);
+  min-width: 0;
+}
+
+.crumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.segment {
+  color: var(--text-tertiary);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 160px;
+  transition: color var(--dur-instant) var(--ease);
+}
+
+.segment:hover {
+  color: var(--text-primary);
+}
+
+.segmentCurrent {
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 240px;
+}
+
+.separator {
+  color: var(--text-disabled);
+  flex-shrink: 0;
+}
+
+/* Below 900px the mobile top bar shows only the last two breadcrumb segments. */
+@media (max-width: 899px) {
+  .crumb:not(:nth-last-child(-n + 2)) {
+    display: none;
+  }
+}

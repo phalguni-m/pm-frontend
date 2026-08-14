@@ -1,0 +1,23 @@
+.root {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-tile);
+  box-shadow: var(--shadow-raised);
+  color: var(--text-primary);
+}
+
+.sizeSm {
+  width: 30px;
+  height: 30px;
+}
+
+.sizeLg {
+  width: 48px;
+  height: 48px;
+}

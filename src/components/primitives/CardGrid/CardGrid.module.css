@@ -1,0 +1,34 @@
+.root {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+/* An odd card out at 2-up spans both columns so it doesn't strand alone. */
+.root > :last-child:nth-child(3n + 1) {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 1279px) {
+  .root {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .root > :last-child:nth-child(3n + 1) {
+    grid-column: auto;
+  }
+
+  .root > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 899px) {
+  .root {
+    grid-template-columns: 1fr;
+  }
+
+  .root > :last-child {
+    grid-column: auto;
+  }
+}

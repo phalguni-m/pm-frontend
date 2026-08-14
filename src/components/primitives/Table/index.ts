@@ -1,0 +1,11 @@
+export { Table } from "@/components/primitives/Table/Table";
+export type { TableProps } from "@/components/primitives/Table/Table";
+export { TableHeader } from "@/components/primitives/Table/TableHeader";
+export type { TableHeaderProps } from "@/components/primitives/Table/TableHeader";
+export { TableRow } from "@/components/primitives/Table/TableRow";
+export type { TableRowProps, FlatRow } from "@/components/primitives/Table/TableRow";
+export { TableCell } from "@/components/primitives/Table/TableCell";
+export type { TableCellProps } from "@/components/primitives/Table/TableCell";
+export { TableCardView } from "@/components/primitives/Table/TableCardView";
+export type { TableCardViewProps } from "@/components/primitives/Table/TableCardView";
+export type { TableColumn, TableRowData, TableSortState, SortDirection, TableCardSlot } from "@/components/primitives/Table/types";

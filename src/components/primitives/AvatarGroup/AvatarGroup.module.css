@@ -1,0 +1,26 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+}
+
+.item {
+  border-radius: var(--radius-pill);
+  box-shadow: 0 0 0 2px var(--bg-card);
+}
+
+.item:not(:first-child) {
+  margin-left: -8px;
+}
+
+.overflow {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  background: var(--bg-raised);
+  color: var(--text-tertiary);
+  font-weight: var(--weight-semibold);
+  box-shadow: 0 0 0 2px var(--bg-card);
+  margin-left: -8px;
+}

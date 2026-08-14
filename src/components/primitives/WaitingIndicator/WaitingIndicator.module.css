@@ -1,0 +1,35 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 4px 9px;
+  background: var(--bg-raised);
+  border-radius: var(--radius-inner);
+  font-size: var(--text-sm);
+}
+
+.dot {
+  flex-shrink: 0;
+}
+
+.duration {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  font-weight: var(--weight-medium);
+}
+
+.separator {
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+}
+
+.cause {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-secondary);
+}

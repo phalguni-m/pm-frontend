@@ -1,0 +1,17 @@
+.variant {
+  display: none;
+}
+
+.default {
+  display: inline-flex;
+}
+
+@media (max-width: 379px) {
+  .default {
+    display: none;
+  }
+
+  .compact {
+    display: inline-flex;
+  }
+}

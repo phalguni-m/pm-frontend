@@ -1,0 +1,113 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cardRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  padding: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  text-align: left;
+  font-family: var(--font-sans);
+  cursor: pointer;
+}
+
+.cardRow:hover {
+  background: var(--bg-hover);
+}
+
+.cardTitleLine {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.cardChevron {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: var(--radius-inner);
+  background: transparent;
+  color: var(--text-tertiary);
+}
+
+.cardChevron::before {
+  content: "";
+  position: absolute;
+  inset: -12px;
+}
+
+.cardChevronGlyph {
+  display: inline-flex;
+  transition: transform var(--dur-fast) var(--ease);
+}
+
+.cardChevronGlyphOpen {
+  transform: rotate(90deg);
+}
+
+.cardTitleContent {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-base);
+  color: var(--text-primary);
+}
+
+.cardMetaLine {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  min-width: 0;
+}
+
+.cardFooterLine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.cardFooterStart,
+.cardFooterEnd {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.childStack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  padding-left: 20px;
+  border-left: 1px solid var(--border);
+}
+
+.emptyState {
+  padding: var(--space-8);
+}
+
+.loadingCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+}

@@ -1,0 +1,64 @@
+.root {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100dvh;
+  background: #888;
+}
+
+.pane {
+  padding: var(--space-8);
+  overflow-y: auto;
+  background: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+.paneLabel {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  margin-bottom: var(--space-6);
+}
+
+.section {
+  margin-bottom: var(--space-8);
+}
+
+.sectionTitle {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-3);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-3);
+}
+
+.rowLabel {
+  width: 140px;
+  flex-shrink: 0;
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+}
+
+.cardStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.swatchDemo {
+  width: 240px;
+}

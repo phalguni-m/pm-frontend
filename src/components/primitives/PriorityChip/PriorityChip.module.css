@@ -1,0 +1,31 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}
+
+.critical {
+  background: var(--signal-critical-dim);
+  color: var(--signal-critical-text);
+}
+
+.high {
+  background: var(--signal-high-dim);
+  color: var(--signal-high-text);
+}
+
+.medium {
+  background: var(--bg-raised);
+  color: var(--text-secondary);
+}
+
+.low {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text-tertiary);
+}

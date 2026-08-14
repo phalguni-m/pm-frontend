@@ -1,0 +1,119 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+/* Shadows alone don't separate a card from canvas on dark backgrounds — add a
+   1px top highlight so elevation stays legible without leaning on shadow. */
+:global([data-theme="dark"]) .root {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.header {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: 18px 20px;
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subtitle {
+  margin-top: 2px;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kebab {
+  position: relative;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-inner);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: background-color var(--dur-instant) var(--ease), color var(--dur-instant) var(--ease);
+}
+
+/* Hit area grows to 44px via a pseudo-element; the visual glyph stays 28px. */
+.kebab::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+}
+
+.kebab:hover {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.rule {
+  border: none;
+  border-top: 1px solid var(--border-subtle);
+  margin: 0;
+}
+
+.body {
+  padding: 20px;
+}
+
+.bodyFlush {
+  padding: 0;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 14px 20px;
+  background: var(--bg-strip);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.footerLink {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+}
+
+.footerLink:hover {
+  color: var(--text-primary);
+}

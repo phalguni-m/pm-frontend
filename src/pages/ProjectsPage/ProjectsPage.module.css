@@ -1,0 +1,82 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.headerText {
+  min-width: 0;
+}
+
+.title {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+
+.description {
+  margin-top: 4px;
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+}
+
+.headerActions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.search {
+  width: 220px;
+}
+
+.nameCell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.nameText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-base);
+  color: var(--text-primary);
+}
+
+.progressCell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.progressPercent {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.countZero {
+  color: var(--text-disabled);
+}
+
+@media (max-width: 639px) {
+  .search {
+    width: 100%;
+  }
+
+  .headerActions {
+    width: 100%;
+  }
+}

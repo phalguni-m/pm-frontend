@@ -1,0 +1,13 @@
+.root {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-tile);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-bold);
+  user-select: none;
+}

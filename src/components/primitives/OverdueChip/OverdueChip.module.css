@@ -1,0 +1,11 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--signal-critical-dim);
+  color: var(--signal-critical-text);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}

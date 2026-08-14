@@ -1,0 +1,55 @@
+.trigger {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 7px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+
+@media (max-width: 899px) {
+  .trigger::before {
+    content: "";
+    position: absolute;
+    inset: -8px 0;
+  }
+}
+
+.trigger:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+
+.trigger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mark {
+  flex-shrink: 0;
+  display: inline-flex;
+}
+
+.label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  flex-shrink: 0;
+  display: inline-flex;
+  color: var(--text-tertiary);
+  transform: rotate(90deg);
+  transition: transform var(--dur-fast) var(--ease);
+}
+
+.chevronOpen {
+  transform: rotate(-90deg);
+}

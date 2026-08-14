@@ -1,0 +1,21 @@
+.wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.content {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 30;
+  min-width: 220px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  box-shadow: var(--shadow-popover);
+}
+
+.contentRight {
+  left: auto;
+  right: 0;
+}

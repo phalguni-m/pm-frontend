@@ -1,0 +1,27 @@
+.variant {
+  display: none;
+}
+
+.desktop {
+  display: block;
+}
+
+@media (max-width: 899px) {
+  .desktop {
+    display: none;
+  }
+
+  .tablet {
+    display: block;
+  }
+}
+
+@media (max-width: 639px) {
+  .tablet {
+    display: none;
+  }
+
+  .mobile {
+    display: block;
+  }
+}

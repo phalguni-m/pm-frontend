@@ -1,0 +1,66 @@
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-canvas);
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: var(--radius-inner);
+}
+
+:focus-visible {
+  outline: 2px solid var(--border-strong);
+  outline-offset: 2px;
+  border-radius: var(--radius-inner);
+}
+
+::selection {
+  background: var(--bg-active);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* SPEC §2 "Display figures" — 28px/700 tabular, e.g. stat-card totals. Drops
+   to 24px at ≤380px per SPEC §6. */
+.displayFigure {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+@media (max-width: 379px) {
+  .displayFigure {
+    font-size: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

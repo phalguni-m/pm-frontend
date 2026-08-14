@@ -1,0 +1,20 @@
+.root {
+  background: var(--bg-raised);
+  animation: pulse var(--dur-slow) ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root {
+    animation: none;
+    opacity: 0.75;
+  }
+}

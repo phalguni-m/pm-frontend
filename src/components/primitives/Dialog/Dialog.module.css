@@ -1,0 +1,98 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  background: var(--overlay);
+}
+
+.panel {
+  width: 100%;
+  max-width: 480px;
+  max-height: min(640px, calc(100dvh - 48px));
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-dialog);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+
+.closeButton {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius-inner);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+
+.closeButton::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+}
+
+.closeButton:hover {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-5);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: var(--bg-strip);
+  border-top: 1px solid var(--border-subtle);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .panel {
+    animation: dialog-in var(--dur-base) var(--ease);
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
