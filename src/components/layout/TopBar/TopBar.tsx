@@ -2,16 +2,14 @@ import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "@/components/layout/TopBar/TopBar.module.css";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
-import { ChevronIcon, HamburgerIcon, SearchIcon, ComposeIcon } from "@/components/icons";
+import { ChevronIcon, HamburgerIcon } from "@/components/icons";
 
 export interface TopBarProps {
   actions?: ReactNode;
   onOpenDrawer?: () => void;
-  onSearch?: () => void;
-  onCompose?: () => void;
 }
 
-export function TopBar({ actions, onOpenDrawer, onSearch, onCompose }: TopBarProps) {
+export function TopBar({ actions, onOpenDrawer }: TopBarProps) {
   const navigate = useNavigate();
 
   return (
@@ -39,13 +37,6 @@ export function TopBar({ actions, onOpenDrawer, onSearch, onCompose }: TopBarPro
       </div>
 
       {actions && <div className={styles.actions}>{actions}</div>}
-
-      <button type="button" className={styles.mobileAction} aria-label="Search" onClick={onSearch}>
-        <SearchIcon size={18} />
-      </button>
-      <button type="button" className={styles.mobileAction} aria-label="New task" onClick={onCompose}>
-        <ComposeIcon size={18} />
-      </button>
     </div>
   );
 }

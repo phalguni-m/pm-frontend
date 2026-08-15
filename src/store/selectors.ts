@@ -1,6 +1,7 @@
 import { useMemo } from "react";
-import { PROJECT_BY_ID, PROJECTS_WITH_TASKS, SECTION_BY_ID } from "@/fixtures";
+import { PROJECT_BY_ID, PROJECTS_WITH_TASKS } from "@/fixtures";
 import { useTasksContext } from "@/store/TasksContext";
+import type { SectionRecord } from "@/store/tasksReducer";
 import type { Comment, ProjectView, SectionView, StatusCounts, TaskRef, TaskView } from "@/types/ui";
 
 const EMPTY_COMMENTS: Comment[] = [];
@@ -10,13 +11,12 @@ function emptyCounts(): StatusCounts {
 }
 
 /**
- * Every dependsOn/blocks/subtasks entry is a TaskRef snapshot taken when
- * fixtures were built — title, status, priority, isDeleted all freeze at
- * that moment. This is the single place a stored ref gets re-hydrated from
- * live task state before anything renders it, so a status/title edit (or a
- * delete) is reflected everywhere a ref to that task appears, and a ref
- * pointing at a since-deleted task carries isDeleted: true instead of
- * silently going stale.
+ * Every dependsOn/blocks entry is a TaskRef snapshot taken when fixtures were
+ * built — title, status, priority, isDeleted all freeze at that moment. This
+ * is the single place a stored ref gets re-hydrated from live task state
+ * before anything renders it, so a status/title edit (or a delete) is
+ * reflected everywhere a ref to that task appears, and a ref pointing at a
+ * since-deleted task carries isDeleted: true instead of silently going stale.
  */
 function refreshRef(ref: TaskRef, tasksById: Record<string, TaskView>): TaskRef {
   const live = tasksById[ref.id];
@@ -30,23 +30,54 @@ function refreshRef(ref: TaskRef, tasksById: Record<string, TaskView>): TaskRef 
   };
 }
 
+function toRef(task: TaskView): TaskRef {
+  return { id: task.id, identifier: task.identifier, title: task.title, status: task.state.status, priority: task.priority, isDeleted: task.isDeleted };
+}
+
+/**
+ * A task's children (top-level tasks in a section, or a task's own subtasks)
+ * used to be read off task.subtasks / SECTION_BY_ID[id].tasks — a list
+ * computed once from the static fixture array at load time. That's fine for
+ * edits and deletes (refreshRef re-hydrates entries already in the list) but
+ * silently breaks task create: a brand-new task written into tasksById would
+ * never appear anywhere, because none of those lists are membership-derived
+ * from tasksById, they're frozen at whatever the fixtures looked like on
+ * import. liveChildrenOf and hydrateTask's subtasks field below both filter
+ * live tasksById directly instead, so a new task shows up the instant it's
+ * dispatched, same as SECTION_BY_ID[id].tasks did for existing ones.
+ */
+function liveChildrenOf(tasksById: Record<string, TaskView>, predicate: (task: TaskView) => boolean): TaskView[] {
+  return Object.values(tasksById).filter((task) => !task.isDeleted && predicate(task));
+}
+
 function hydrateTask(task: TaskView, tasksById: Record<string, TaskView>): TaskView {
   const live = tasksById[task.id] ?? task;
   return {
     ...live,
     dependsOn: live.dependsOn.map((ref) => refreshRef(ref, tasksById)),
     blocks: live.blocks.map((ref) => refreshRef(ref, tasksById)),
-    subtasks: live.subtasks.map((ref) => refreshRef(ref, tasksById)),
+    subtasks: liveChildrenOf(tasksById, (t) => t.parentTaskId === live.id).map(toRef),
   };
 }
 
+/**
+ * Section identity (id/name/description/position) is reducer state now
+ * (Block 16C's CREATE_SECTION), read live from sectionsById exactly the
+ * same way task identity is read from tasksById — a section created this
+ * session shows up the instant it's dispatched, not just tasks. Sorted by
+ * position, ties broken by id, same convention REORDER_TASK's siblingsOf
+ * already uses for task ordering.
+ */
+function liveSectionsOf(projectId: string, sectionsById: Record<string, SectionRecord>): SectionRecord[] {
+  return Object.values(sectionsById)
+    .filter((section) => section.projectId === projectId)
+    .sort((a, b) => a.position - b.position || a.id.localeCompare(b.id));
+}
+
 function liveTopLevelTasks(sectionId: string, tasksById: Record<string, TaskView>): TaskView[] {
-  const section = SECTION_BY_ID[sectionId];
-  if (!section) return [];
-  return section.tasks
-    .map((task) => tasksById[task.id] ?? task)
-    .filter((task) => !task.isDeleted)
-    .map((task) => hydrateTask(task, tasksById));
+  return liveChildrenOf(tasksById, (task) => task.sectionId === sectionId && task.parentTaskId === null).map((task) =>
+    hydrateTask(task, tasksById),
+  );
 }
 
 function countsOf(tasks: TaskView[]): StatusCounts {
@@ -76,10 +107,10 @@ export function useSection(sectionId: string | undefined): SectionView | undefin
   const { state } = useTasksContext();
   return useMemo(() => {
     if (!sectionId) return undefined;
-    const section = SECTION_BY_ID[sectionId];
+    const section = state.sectionsById[sectionId];
     if (!section) return undefined;
     return { ...section, tasks: liveTopLevelTasks(sectionId, state.tasksById) };
-  }, [sectionId, state.tasksById]);
+  }, [sectionId, state.sectionsById, state.tasksById]);
 }
 
 export function useProject(projectId: string | undefined): ProjectView | undefined {
@@ -89,7 +120,7 @@ export function useProject(projectId: string | undefined): ProjectView | undefin
     const project = PROJECT_BY_ID[projectId];
     if (!project) return undefined;
 
-    const sections = project.sections.map((section) => ({
+    const sections = liveSectionsOf(projectId, state.sectionsById).map((section) => ({
       ...section,
       tasks: liveTopLevelTasks(section.id, state.tasksById),
     }));
@@ -100,7 +131,7 @@ export function useProject(projectId: string | undefined): ProjectView | undefin
     const allTopLevel = sections.flatMap((section) => section.tasks);
 
     return { ...project, sections, statusCounts: countsOf(allTopLevel) };
-  }, [projectId, state.tasksById]);
+  }, [projectId, state.sectionsById, state.tasksById]);
 }
 
 export function useProjectsIndex(): ProjectView[] {
@@ -108,15 +139,60 @@ export function useProjectsIndex(): ProjectView[] {
   return useMemo(
     () =>
       PROJECTS_WITH_TASKS.map((project) => {
-        const sections = project.sections.map((section) => ({
+        const sections = liveSectionsOf(project.id, state.sectionsById).map((section) => ({
           ...section,
           tasks: liveTopLevelTasks(section.id, state.tasksById),
         }));
         const allTopLevel = sections.flatMap((section) => section.tasks);
         return { ...project, sections, statusCounts: countsOf(allTopLevel) };
       }),
-    [state.tasksById],
+    [state.sectionsById, state.tasksById],
   );
+}
+
+export interface MyTaskRow {
+  task: TaskView;
+  projectId: string;
+  projectName: string;
+  sectionId: string | null;
+  sectionName: string | null;
+}
+
+/**
+ * Every task assigned to userId across every project, flat — the only
+ * cross-project view in the app. Reads state.tasksById directly (not
+ * PROJECTS_WITH_TASKS/useProjectsIndex, which only surface top-level tasks
+ * per section) because a subtask carries its own independent assigneeIds
+ * too, and both live flat in the same tasksById map — filtering there in
+ * one pass catches both without needing a second per-task subtask fetch.
+ * Sorted by dueDate ascending, undated tasks last, ties broken by id for
+ * determinism (same convention as every other sort in this codebase).
+ */
+export function useMyTasks(userId: string): MyTaskRow[] {
+  const { state } = useTasksContext();
+  return useMemo(() => {
+    const rows = Object.values(state.tasksById)
+      .filter((task) => !task.isDeleted && task.assignees.some((member) => member.id === userId))
+      .map((task) => {
+        const hydrated = hydrateTask(task, state.tasksById);
+        const project = PROJECT_BY_ID[hydrated.projectId];
+        const section = hydrated.sectionId ? state.sectionsById[hydrated.sectionId] : undefined;
+        return {
+          task: hydrated,
+          projectId: hydrated.projectId,
+          projectName: project?.name ?? "Unknown project",
+          sectionId: section?.id ?? null,
+          sectionName: section?.name ?? null,
+        };
+      });
+
+    return rows.sort((a, b) => {
+      if (!a.task.dueDate && !b.task.dueDate) return a.task.id.localeCompare(b.task.id);
+      if (!a.task.dueDate) return 1;
+      if (!b.task.dueDate) return -1;
+      return a.task.dueDate.localeCompare(b.task.dueDate) || a.task.id.localeCompare(b.task.id);
+    });
+  }, [userId, state.tasksById, state.sectionsById]);
 }
 
 export function useComments(taskId: string | undefined): Comment[] {

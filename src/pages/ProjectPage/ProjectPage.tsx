@@ -1,9 +1,9 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import styles from "@/pages/ProjectPage/ProjectPage.module.css";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { TASK_INTELLIGENCE_BY_ID, DELAY_CAUSES } from "@/fixtures";
-import { useProject } from "@/store";
+import { useProject, useTasksContext } from "@/store";
 import { Card } from "@/components/primitives/Card";
 import { Button } from "@/components/primitives/Button";
 import { IconTile } from "@/components/primitives/IconTile";
@@ -12,7 +12,8 @@ import { AvatarGroup } from "@/components/primitives/AvatarGroup";
 import { AbsentValue } from "@/components/primitives/AbsentValue";
 import { StripedBar } from "@/components/primitives/StripedBar";
 import { Table, type TableColumn, type TableRowData } from "@/components/primitives/Table";
-import { TasksIcon, HistoryIcon, BlockedIcon, MembersIcon, ComposeIcon } from "@/components/icons";
+import { NewSectionDialog } from "@/components/project/NewSectionDialog";
+import { TasksIcon, HistoryIcon, BlockedIcon, ComposeIcon } from "@/components/icons";
 import { formatDuration, projectMarkOf } from "@/lib/format";
 import type { SectionView, TaskIntelligence, TaskView } from "@/types/ui";
 
@@ -66,6 +67,8 @@ export function ProjectPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const project = useProject(projectId);
+  const { dispatch } = useTasksContext();
+  const [isNewSectionOpen, setIsNewSectionOpen] = useState(false);
 
   const allTasks = useMemo(() => (project ? project.sections.flatMap((s) => s.tasks) : []), [project]);
 
@@ -229,10 +232,7 @@ export function ProjectPage() {
         <div className={styles.headerActions}>
           <AvatarGroup members={project.members} size={28} />
           <div className={styles.headerButtons}>
-            <Button variant="default" icon={<MembersIcon size={16} />}>
-              Members
-            </Button>
-            <Button variant="primary" icon={<ComposeIcon size={16} />}>
+            <Button variant="primary" icon={<ComposeIcon size={16} />} onClick={() => setIsNewSectionOpen(true)}>
               Section
             </Button>
           </div>
@@ -286,7 +286,7 @@ export function ProjectPage() {
           footer={{
             message: sectionRowData.length === 0 ? "No sections yet." : `${sectionRowData.length} section${sectionRowData.length === 1 ? "" : "s"}.`,
             linkLabel: "Add section",
-            onLinkClick: () => {},
+            onLinkClick: () => setIsNewSectionOpen(true),
           }}
         >
           {sectionRowData.length === 0 ? (
@@ -369,6 +369,12 @@ export function ProjectPage() {
           </Card>
         </div>
       </div>
+
+      <NewSectionDialog
+        isOpen={isNewSectionOpen}
+        onClose={() => setIsNewSectionOpen(false)}
+        onCreate={(name) => dispatch({ type: "CREATE_SECTION", projectId: project.id, name })}
+      />
     </div>
   );
 }

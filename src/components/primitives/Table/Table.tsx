@@ -142,6 +142,8 @@ export function Table<T>({
           isLoading={isLoading}
           loadingRowCount={loadingRowCount}
           emptyState={emptyState}
+          draggable={draggable}
+          onReorder={onReorder}
         />
       </div>
     </div>

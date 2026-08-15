@@ -13,6 +13,8 @@ export interface TableCardViewProps<T> {
   isLoading?: boolean;
   loadingRowCount?: number;
   emptyState?: ReactNode;
+  draggable?: boolean;
+  onReorder?: (sourceId: string, direction: "up" | "down") => void;
 }
 
 function slotContent<T>(columns: TableColumn<T>[], slot: TableColumn<T>["cardSlot"], data: T): ReactNode[] {
@@ -25,12 +27,16 @@ function CardRow<T>({
   expandedIds,
   onToggleExpand,
   onRowActivate,
+  draggable,
+  onReorder,
 }: {
   row: TableRowData<T>;
   columns: TableColumn<T>[];
   expandedIds: ReadonlySet<string>;
   onToggleExpand: (id: string) => void;
   onRowActivate: (row: T) => void;
+  draggable: boolean;
+  onReorder?: (sourceId: string, direction: "up" | "down") => void;
 }) {
   const hasChildren = Boolean(row.children && row.children.length > 0);
   const isExpanded = expandedIds.has(row.id);
@@ -44,6 +50,36 @@ function CardRow<T>({
     <div>
       <div className={styles.cardRow} role="button" tabIndex={0} onClick={() => onRowActivate(row.data)}>
         <div className={styles.cardTitleLine}>
+          {draggable && onReorder && (
+            <span className={styles.cardReorder}>
+              <button
+                type="button"
+                className={styles.cardReorderButton}
+                aria-label="Move up"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onReorder(row.id, "up");
+                }}
+              >
+                <span className={styles.cardReorderGlyphUp}>
+                  <ChevronIcon size={12} />
+                </span>
+              </button>
+              <button
+                type="button"
+                className={styles.cardReorderButton}
+                aria-label="Move down"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onReorder(row.id, "down");
+                }}
+              >
+                <span className={styles.cardReorderGlyphDown}>
+                  <ChevronIcon size={12} />
+                </span>
+              </button>
+            </span>
+          )}
           {hasChildren && (
             <button
               type="button"
@@ -80,6 +116,8 @@ function CardRow<T>({
               expandedIds={expandedIds}
               onToggleExpand={onToggleExpand}
               onRowActivate={onRowActivate}
+              draggable={draggable}
+              onReorder={onReorder}
             />
           ))}
         </div>
@@ -97,6 +135,8 @@ export function TableCardView<T>({
   isLoading = false,
   loadingRowCount = 4,
   emptyState,
+  draggable = false,
+  onReorder,
 }: TableCardViewProps<T>) {
   if (isLoading) {
     return (
@@ -126,6 +166,8 @@ export function TableCardView<T>({
           expandedIds={expandedIds}
           onToggleExpand={onToggleExpand}
           onRowActivate={onRowActivate}
+          draggable={draggable}
+          onReorder={onReorder}
         />
       ))}
     </div>

@@ -6,14 +6,11 @@ import {
   TasksIcon,
   MembersIcon,
   HistoryIcon,
-  SettingsIcon,
   ChevronIcon,
-  StepperIcon,
   SunIcon,
   MoonIcon,
   MonitorIcon,
 } from "@/components/icons";
-import { SearchField } from "@/components/primitives/SearchField";
 import { Avatar } from "@/components/primitives/Avatar";
 import { ProjectMark } from "@/components/primitives/ProjectMark";
 import { CompletionSparkline } from "@/components/primitives/CompletionSparkline";
@@ -173,24 +170,20 @@ export function Sidebar({
     <nav aria-label="Main" className={rootClassName}>
       <div className={styles.brand}>
         <span className={styles.brandMark} aria-hidden="true">
-          SD
+          PM
         </span>
-        <span className={styles.wordmark}>Softdeck</span>
+        <span className={styles.wordmark}>PM</span>
       </div>
 
-      <button type="button" className={styles.miniCard} aria-label={`Switch workspace, currently ${workspaceName}`}>
+      {/* Non-interactive: no workspace-switching action exists today (single
+          workspace). A plain div, not a button — not focusable, not
+          announced as a control. See HANDOFF for the removal rationale. */}
+      <div className={`${styles.miniCard} ${styles.miniCardStatic}`}>
         <Avatar initials="G3" name={workspaceName} size={36} />
         <span className={styles.miniCardText}>
           <span className={styles.miniCardEyebrow}>Workspace</span>
           <span className={styles.miniCardName}>{workspaceName}</span>
         </span>
-        <span className={styles.miniCardGlyph}>
-          <StepperIcon size={16} />
-        </span>
-      </button>
-
-      <div className={styles.search}>
-        <SearchField placeholder="Search" aria-label="Search" />
       </div>
 
       <div className={styles.scrollRegion}>
@@ -200,7 +193,6 @@ export function Sidebar({
           <NavItem to="/my-tasks" icon={<TasksIcon size={18} />} label="My Tasks" onNavigate={onNavigate} />
           <NavItem to="/history" icon={<HistoryIcon size={18} />} label="History" onNavigate={onNavigate} />
           <NavItem to="/members" icon={<MembersIcon size={18} />} label="Members" onNavigate={onNavigate} />
-          <NavItem to="/settings" icon={<SettingsIcon size={18} />} label="Settings" onNavigate={onNavigate} />
         </div>
 
         <div className={styles.eyebrow}>Projects</div>
@@ -212,13 +204,16 @@ export function Sidebar({
       </div>
 
       <div className={styles.footer}>
-        <button type="button" className={styles.miniCard} aria-label={`${currentUser.name}, account options`}>
+        {/* Non-interactive: no account-options action exists today, same
+            reasoning as the workspace switcher above. A plain div, not a
+            button — not focusable, not announced as a control. */}
+        <div className={`${styles.miniCard} ${styles.miniCardStatic}`}>
           <Avatar initials={currentUser.initials} name={currentUser.name} size={32} />
           <span className={styles.miniCardText}>
             <span className={styles.miniCardName}>{currentUser.name}</span>
             <span className={styles.miniCardEmail}>{currentUser.email}</span>
           </span>
-        </button>
+        </div>
         <button
           type="button"
           className={styles.themeToggle}

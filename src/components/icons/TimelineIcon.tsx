@@ -1,6 +1,7 @@
 import type { IconProps } from "@/components/icons/types";
 
-export function SettingsIcon({ size = 16, className }: IconProps) {
+// Horizontal Gantt-bar glyph — three staggered bars reading as a schedule.
+export function TimelineIcon({ size = 16, className }: IconProps) {
   return (
     <svg
       width={size}
@@ -14,8 +15,9 @@ export function SettingsIcon({ size = 16, className }: IconProps) {
       className={className}
       aria-hidden="true"
     >
-      <circle cx="8" cy="8" r="2" />
-      <path d="M8 1.5v2M8 12.5v2M2.9 4.4l1.4 1.4M11.7 10.2l1.4 1.4M1.5 8h2M12.5 8h2M2.9 11.6l1.4-1.4M11.7 5.8l1.4-1.4" />
+      <path d="M2.5 4.5h6" />
+      <path d="M2.5 8h9" />
+      <path d="M2.5 11.5h4.5" />
     </svg>
   );
 }

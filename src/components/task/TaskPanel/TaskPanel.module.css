@@ -58,10 +58,6 @@
   flex: 1;
 }
 
-.linkButton {
-  flex-shrink: 0;
-}
-
 .closeButton {
   position: relative;
   flex-shrink: 0;
@@ -173,6 +169,16 @@
   border-bottom: 1px solid var(--border-subtle);
 }
 
+/* Makes Tabs itself the flexible region in .panel's column (see Tabs.tsx's
+   className prop / Tabs.module.css's .root comment) — without this, Tabs
+   sized to its content's natural height and pushed past .panel's own
+   fixed bottom edge instead of scrolling, since .tabsRegion below (the
+   actual overflow:auto container) sat inside an unconstrained ancestor. */
+.tabsGrow {
+  flex: 1;
+  min-height: 0;
+}
+
 /* --- Tabs body --- */
 .tabsRegion {
   flex: 1;
@@ -249,6 +255,39 @@
   font-weight: var(--weight-medium);
   color: var(--text-tertiary);
   margin-bottom: 8px;
+}
+
+.sectionLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.sectionLabelRow .sectionLabel {
+  margin-bottom: 0;
+}
+
+.addSubtaskLink {
+  position: relative;
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.addSubtaskLink:hover {
+  color: var(--text-primary);
+}
+
+/* Hit area grows to 44px via a pseudo-element so the small visual label is unaffected. */
+.addSubtaskLink::before {
+  content: "";
+  position: absolute;
+  inset: -12px;
 }
 
 /* --- Comments --- */

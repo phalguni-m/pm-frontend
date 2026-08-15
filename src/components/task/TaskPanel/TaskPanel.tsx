@@ -14,10 +14,11 @@ import { AbsentValue } from "@/components/primitives/AbsentValue";
 import { RiskBadge } from "@/components/primitives/RiskBadge";
 import { IconTile } from "@/components/primitives/IconTile";
 import { Tabs } from "@/components/primitives/Tabs";
+import { NewTaskDialog } from "@/components/task/NewTaskDialog";
 import { STATUS_ORDER, STATUS_LABEL, PRIORITY_ORDER, PRIORITY_LABEL, KNOWN_EVENT_TYPES } from "@/lib/constants";
 import { formatDate, formatDateTime, riskTierOf } from "@/lib/format";
 import type { StatusType, PriorityLevel } from "@/types/database";
-import type { Comment, DelayCause, HistoryEntry, Member, TaskIntelligence, TaskPatch, TaskState, TaskView } from "@/types/ui";
+import type { Comment, DelayCause, HistoryEntry, Member, TaskDraft, TaskIntelligence, TaskPatch, TaskState, TaskView } from "@/types/ui";
 import styles from "@/components/task/TaskPanel/TaskPanel.module.css";
 
 export interface TaskPanelProps {
@@ -33,6 +34,7 @@ export interface TaskPanelProps {
   onSave: (patch: TaskPatch & { state: TaskState; assigneeIds: string[] }) => void;
   onDelete: () => void;
   onAddComment: (body: string) => void;
+  onCreateSubtask: (draft: TaskDraft) => void;
 }
 
 type PanelTab = "details" | "comments" | "history";
@@ -62,6 +64,7 @@ export function TaskPanel({
   onSave,
   onDelete,
   onAddComment,
+  onCreateSubtask,
 }: TaskPanelProps) {
   const panelRef = useFocusTrap<HTMLDivElement>(true);
   useEscapeKey(onClose, true);
@@ -75,6 +78,7 @@ export function TaskPanel({
   }, []);
 
   const [activeTab, setActiveTab] = useState<PanelTab>("details");
+  const [isNewSubtaskOpen, setIsNewSubtaskOpen] = useState(false);
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description ?? "");
   const [draftStatus, setDraftStatus] = useState<StatusType>(task.state.status);
@@ -180,9 +184,6 @@ export function TaskPanel({
               />
             )}
             <span className={styles.headerSpacer} />
-            <Button variant="quiet" className={styles.linkButton} icon={<LinkIcon size={14} />}>
-              Link
-            </Button>
             <button type="button" className={styles.closeButton} aria-label="Close" onClick={onClose}>
               <CloseIcon size={16} />
             </button>
@@ -205,7 +206,16 @@ export function TaskPanel({
             <DropdownPill
               label={STATUS_LABEL[draftStatus]}
               items={STATUS_ORDER.map((status) => ({ id: status, label: STATUS_LABEL[status], selected: status === draftStatus }))}
-              onSelect={(id) => setDraftStatus(id as StatusType)}
+              onSelect={(id) => {
+                const nextStatus = id as StatusType;
+                setDraftStatus(nextStatus);
+                // Leaving "waiting" clears the drafted cause so returning to
+                // "waiting" later in the same session re-prompts exactly like
+                // a first entry (auto-open menu, required-field asterisk,
+                // Save disabled) instead of silently reusing a cause the user
+                // never reconfirmed for this waiting period.
+                if (nextStatus !== "waiting") setDraftDelayCauseId(null);
+              }}
             />
           </Field>
           <Field label="Priority" htmlFor="task-panel-priority">
@@ -289,6 +299,7 @@ export function TaskPanel({
           activeTabId={activeTab}
           onChange={(id) => setActiveTab(id as PanelTab)}
           ariaLabel="Task detail tabs"
+          className={styles.tabsGrow}
         >
           <div className={styles.tabsRegion}>
             {activeTab === "details" && (
@@ -304,7 +315,12 @@ export function TaskPanel({
                 </div>
 
                 <div>
-                  <div className={styles.sectionLabel}>Subtasks</div>
+                  <div className={styles.sectionLabelRow}>
+                    <div className={styles.sectionLabel}>Subtasks</div>
+                    <button type="button" className={styles.addSubtaskLink} onClick={() => setIsNewSubtaskOpen(true)}>
+                      + Add subtask
+                    </button>
+                  </div>
                   <div className={styles.subtaskList}>
                     {task.subtasks.length === 0 && <AbsentValue />}
                     {task.subtasks.map((subtask) => (
@@ -433,6 +449,16 @@ export function TaskPanel({
           </div>
         </div>
       </div>
+
+      <NewTaskDialog
+        isOpen={isNewSubtaskOpen}
+        onClose={() => setIsNewSubtaskOpen(false)}
+        projectId={task.projectId}
+        sectionId={task.sectionId}
+        parentTaskId={task.id}
+        projectMembers={projectMembers}
+        onCreate={onCreateSubtask}
+      />
     </>
   );
 }

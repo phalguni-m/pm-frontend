@@ -12,6 +12,71 @@
   height: 14px;
   border-radius: var(--radius-pill);
   overflow: hidden;
+  /* Mount-in + live-update motion: width is driven by an inline style that
+     changes whenever segment counts change (live store data) or on first
+     paint (see StripedBar.tsx's mount effect, which flips from width:0 to
+     the real value one frame after mount). transition, not a keyframe
+     animation, so there's nothing looping and prefers-reduced-motion's
+     global rule (src/styles/global.css) collapses this to an instant jump
+     automatically — no extra media query needed here. */
+  transition: width var(--dur-slow) var(--ease);
+}
+
+/* Every tone/stroke color lives here, resolved through the normal CSS
+   cascade, rather than as inline SVG `fill="var(...)"` presentation
+   attributes inside a <pattern> def. That was the root cause of the
+   "In progress" swatch rendering as nothing (see StripedBar.tsx's header
+   comment for the full explanation) — var() resolution on a JSX-authored
+   XML attribute inside a pattern that's only reachable via a url(#id) fill
+   reference is the one place in this codebase where custom-property
+   resolution isn't reliable. Every other working SVG color in this app
+   (DonutGlyph, StatusPill) sets its var() directly on a rendered shape, not
+   inside an indirectly-referenced pattern — this fix removes that
+   structural difference instead of patching around it.
+   Order matches STATUS_ORDER (densest -> lightest). */
+.toneInProgress {
+  fill: var(--meter-1);
+}
+.toneWaiting {
+  fill: var(--meter-2);
+}
+.toneBlocked {
+  fill: var(--meter-3);
+}
+.toneToDo {
+  fill: var(--meter-4);
+}
+.toneDone {
+  fill: var(--meter-5);
+}
+
+/* Hatch line contrast stroke — light line over the three darker/denser
+   tones, dark line over the two lighter ones, mirroring the light/dark
+   split TONE already has. */
+.strokeOnDark {
+  stroke: var(--bg-card);
+}
+.strokeOnLight {
+  stroke: var(--text-primary);
+}
+
+/* Same light/dark contrast split as above, but as a fill (for the to_do
+   dot pattern's <circle>, which has no stroke of its own). */
+.fillOnDark {
+  fill: var(--bg-card);
+}
+.fillOnLight {
+  fill: var(--text-primary);
+}
+
+/* 1px border on every segment/swatch regardless of tone or hatch — the
+   "consistent border treatment" that gives adjacent same-brightness tones
+   a hard edge even where hatch alone would read as ambiguous at a glance.
+   One value works in both themes since --border already flips per theme. */
+.segmentBorder {
+  stroke: var(--border);
+  stroke-width: 1;
+  fill: none;
 }
 
 .legend {

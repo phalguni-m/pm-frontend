@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import styles from "@/pages/SectionPage/SectionPage.module.css";
 import { NotFoundPage } from "@/pages/NotFoundPage";
@@ -18,7 +18,8 @@ import { OverdueChip } from "@/components/primitives/OverdueChip";
 import { RiskBadge } from "@/components/primitives/RiskBadge";
 import { Table, type TableColumn, type TableRowData } from "@/components/primitives/Table";
 import { TaskPanel } from "@/components/task/TaskPanel";
-import { TasksIcon, ComposeIcon, FilterIcon, LinkIcon } from "@/components/icons";
+import { NewTaskDialog } from "@/components/task/NewTaskDialog";
+import { TasksIcon, ComposeIcon, LinkIcon } from "@/components/icons";
 import { formatDate, isOverdue, riskTierOf } from "@/lib/format";
 import type { TaskView } from "@/types/ui";
 
@@ -47,13 +48,19 @@ function sortTasks(tasks: TaskView[], sortId: string): TaskView[] {
       return a.dueDate.localeCompare(b.dueDate);
     });
   }
-  return tasks;
+  // "default" — position-ascending, ties broken by id for determinism. This
+  // is also the only sort under which drag-reorder is enabled (see
+  // draggable={sortId === "default"} below): dragging while a Priority/
+  // Status/Due sort is active would swap `position` while the visible order
+  // stays sort-derived, silently lying about what the drag just did.
+  return [...tasks].sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.id.localeCompare(b.id));
 }
 
 export function SectionPage() {
   const { projectId, sectionId } = useParams<{ projectId: string; sectionId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { dispatch } = useTasksContext();
+  const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
 
   const project = projectId ? PROJECT_BY_ID[projectId] : undefined;
   const section = useSection(sectionId);
@@ -226,6 +233,10 @@ export function SectionPage() {
     setSearchParams(params, { replace: true });
   }
 
+  function handleReorder(taskId: string, direction: "up" | "down") {
+    dispatch({ type: "REORDER_TASK", taskId, direction });
+  }
+
   function openTask(taskId: string) {
     const params = new URLSearchParams(searchParams);
     params.set("task", taskId);
@@ -256,10 +267,7 @@ export function SectionPage() {
               items={SORT_ITEMS.map((item) => ({ ...item, selected: item.id === sortId }))}
               onSelect={handleSortChange}
             />
-            <Button variant="default" icon={<FilterIcon size={16} />}>
-              Filter
-            </Button>
-            <Button variant="primary" icon={<ComposeIcon size={16} />}>
+            <Button variant="primary" icon={<ComposeIcon size={16} />} onClick={() => setIsNewTaskOpen(true)}>
               New task
             </Button>
           </div>
@@ -271,7 +279,7 @@ export function SectionPage() {
           <EmptyState
             icon={<TasksIcon size={18} />}
             message="No tasks in this section"
-            action={{ label: "New task", onClick: () => {} }}
+            action={{ label: "New task", onClick: () => setIsNewTaskOpen(true) }}
           />
         ) : (
           <Table
@@ -280,6 +288,8 @@ export function SectionPage() {
             expandedIds={expandedIds}
             onToggleExpand={handleToggleExpand}
             onRowActivate={handleRowActivate}
+            draggable={sortId === "default"}
+            onReorder={sortId === "default" ? handleReorder : undefined}
           />
         )}
       </Card>
@@ -305,8 +315,19 @@ export function SectionPage() {
           onAddComment={(body) => {
             dispatch({ type: "ADD_COMMENT", taskId: openTaskView.id, authorId: CURRENT_USER_ID, body });
           }}
+          onCreateSubtask={(draft) => dispatch({ type: "CREATE_TASK", draft })}
         />
       )}
+
+      <NewTaskDialog
+        isOpen={isNewTaskOpen}
+        onClose={() => setIsNewTaskOpen(false)}
+        projectId={project.id}
+        sectionId={section.id}
+        parentTaskId={null}
+        projectMembers={project.members}
+        onCreate={(draft) => dispatch({ type: "CREATE_TASK", draft })}
+      />
     </div>
   );
 }

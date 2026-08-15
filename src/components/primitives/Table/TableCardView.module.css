@@ -29,6 +29,43 @@
   min-width: 0;
 }
 
+.cardReorder {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.cardReorderButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 14px;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+}
+
+/* Hit area grows to the full 44px tap target via a pseudo-element inset,
+   same convention as .cardChevron below and Table.module.css's .chevron —
+   the visual glyph stays compact, only the touch target grows. */
+.cardReorderButton::before {
+  content: "";
+  position: absolute;
+  inset: -6px -12px;
+}
+
+.cardReorderGlyphUp {
+  display: inline-flex;
+  transform: rotate(-90deg);
+}
+
+.cardReorderGlyphDown {
+  display: inline-flex;
+  transform: rotate(90deg);
+}
+
 .cardChevron {
   position: relative;
   flex-shrink: 0;

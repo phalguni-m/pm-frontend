@@ -12,9 +12,14 @@ export interface TabsProps {
   onChange: (id: string) => void;
   children: ReactNode;
   ariaLabel: string;
+  /** For a consumer whose own layout needs Tabs to grow/shrink within a
+   * constrained-height parent (e.g. TaskPanel's scrolling tab body) — see
+   * Tabs.module.css's .root comment. Purely additive; omit for a Tabs that
+   * should just size to its content, same as before this prop existed. */
+  className?: string;
 }
 
-export function Tabs({ tabs, activeTabId, onChange, children, ariaLabel }: TabsProps) {
+export function Tabs({ tabs, activeTabId, onChange, children, ariaLabel, className }: TabsProps) {
   const baseId = useId();
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
@@ -32,7 +37,7 @@ export function Tabs({ tabs, activeTabId, onChange, children, ariaLabel }: TabsP
   }
 
   return (
-    <div>
+    <div className={className ? `${styles.root} ${className}` : styles.root}>
       <div className={styles.list} role="tablist" aria-label={ariaLabel}>
         {tabs.map((tab, index) => {
           const isActive = tab.id === activeTabId;

@@ -11,14 +11,17 @@ export interface CardProps {
   icon?: ReactNode;
   title?: string;
   subtitle?: string;
-  onKebabClick?: () => void;
+  /** Header-right controls (search, filter, new-item buttons, ...) — for
+   * cards whose header needs more than a title, e.g. a table card with its
+   * own toolbar. */
+  actions?: ReactNode;
   /** When true, body padding is removed — used for edge-to-edge Table content. */
   flush?: boolean;
   footer?: CardFooter;
   children: ReactNode;
 }
 
-export function Card({ icon, title, subtitle, onKebabClick, flush = false, footer, children }: CardProps) {
+export function Card({ icon, title, subtitle, actions, flush = false, footer, children }: CardProps) {
   const hasHeader = icon !== undefined || title !== undefined;
 
   return (
@@ -31,11 +34,7 @@ export function Card({ icon, title, subtitle, onKebabClick, flush = false, foote
               {title && <div className={styles.title}>{title}</div>}
               {subtitle && <div className={styles.subtitle}>{subtitle}</div>}
             </div>
-            {onKebabClick && (
-              <button type="button" className={styles.kebab} aria-label="More options" onClick={onKebabClick}>
-                &#8943;
-              </button>
-            )}
+            {actions && <div className={styles.actions}>{actions}</div>}
           </div>
           <hr className={styles.rule} />
         </>

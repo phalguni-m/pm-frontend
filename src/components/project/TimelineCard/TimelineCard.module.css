@@ -1,0 +1,116 @@
+.root {
+  display: flex;
+  flex-direction: column;
+}
+
+.axis {
+  position: relative;
+  height: 20px;
+  margin-bottom: var(--space-2);
+}
+
+.tickLabel {
+  position: absolute;
+  top: 0;
+  font-size: var(--text-2xs);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  transform: translateX(-1px);
+}
+
+.bars {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 1px dashed verticals continuing from the axis ticks down through every
+   bar row — absolutely positioned against .bars (the full body height),
+   sitting behind the bar tracks (z-index default, bars are position:
+   relative and paint above via normal stacking order). --border, not
+   --border-subtle: --border-subtle is a barely-there hairline meant for
+   things sitting flush against a card's own background (e.g. Card's own
+   header rule) and was functionally invisible here against open plot
+   space in both themes — --border is the standard token this codebase
+   uses for a structural line that actually needs to read. */
+.tickLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 1px dashed var(--border);
+}
+
+/* Today marker — solid and one token stronger than the ordinary ticks
+   (--border-strong vs. --border), so it outranks them visually without
+   reaching for a signal color. Painted after the tick lines so it stacks
+   above them if a week-tick ever lands on the same day. */
+.todayLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 1.5px solid var(--border-strong);
+}
+
+.barTrack {
+  position: relative;
+  height: 32px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* Same reasoning as Table's .rowLast — the final row's own divider would
+   just be a redundant line sitting right above the card's footer strip. */
+.barTrackLast {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.bar {
+  position: absolute;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 32px;
+  min-width: 120px;
+  padding: 0 var(--space-2) 0 10px;
+  background: var(--bg-raised);
+  border: none;
+  border-left: 3px solid var(--border-strong);
+  border-radius: var(--radius-inner);
+  cursor: pointer;
+  text-align: left;
+  overflow: hidden;
+}
+
+.bar:hover {
+  background: var(--bg-hover);
+}
+
+.accentCritical {
+  border-left-color: var(--signal-critical);
+}
+
+.accentHigh {
+  border-left-color: var(--signal-high);
+}
+
+.accentNeutral {
+  border-left-color: var(--border-strong);
+}
+
+.barTitle {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.barAvatars {
+  flex-shrink: 0;
+}

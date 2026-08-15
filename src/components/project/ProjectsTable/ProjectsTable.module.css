@@ -1,0 +1,43 @@
+/* No existing token or SearchField size prop covers "compact" vs. default
+   search width (checked both before hardcoding) — SPEC only says HOME's is
+   "compact" without a value, so these two widths live together here with
+   this comment as the one place to change either. */
+.searchDefault {
+  width: 220px;
+}
+
+.searchCompact {
+  width: 160px;
+}
+
+.nameCell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.nameText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-base);
+  color: var(--text-primary);
+}
+
+.progressCell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.progressPercent {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.countZero {
+  color: var(--text-disabled);
+}

@@ -29,6 +29,13 @@
   min-width: 0;
 }
 
+.actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .title {
   font-size: var(--text-md);
   font-weight: var(--weight-semibold);
@@ -45,34 +52,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.kebab {
-  position: relative;
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: var(--radius-inner);
-  background: transparent;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  transition: background-color var(--dur-instant) var(--ease), color var(--dur-instant) var(--ease);
-}
-
-/* Hit area grows to 44px via a pseudo-element; the visual glyph stays 28px. */
-.kebab::before {
-  content: "";
-  position: absolute;
-  inset: -8px;
-}
-
-.kebab:hover {
-  background: var(--bg-hover);
-  color: var(--text-secondary);
 }
 
 .rule {

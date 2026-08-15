@@ -1,4 +1,20 @@
+/* flex column so a constrained-height parent (e.g. TaskPanel's scrolling
+   tab body) can pass its available height down to .panel and, through it,
+   to whatever scrollable region a consumer renders as children — without
+   this, .panel sizes to its content's natural height regardless of the
+   parent's own height, which is what silently broke TaskPanel's internal
+   scroll (the scroll container existed but its ancestor chain never
+   actually constrained it). A consumer with no height constraint on Tabs
+   itself (e.g. the kitchen-sink demo) is unaffected: flex column with no
+   flex-basis constraint still sizes to content exactly as before. */
+.root {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .list {
+  flex-shrink: 0;
   display: flex;
   border-bottom: 1px solid var(--border);
 }
@@ -38,5 +54,7 @@
 }
 
 .panel {
+  flex: 1;
+  min-height: 0;
   padding: var(--space-5) 0;
 }

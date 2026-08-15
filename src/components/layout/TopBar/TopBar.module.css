@@ -78,24 +78,6 @@
   margin-left: auto;
 }
 
-.mobileAction {
-  display: none;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border: none;
-  border-radius: var(--radius-control);
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-}
-
-.mobileAction:hover {
-  background: var(--bg-hover);
-}
-
 @media (max-width: 899px) {
   .root {
     position: sticky;
@@ -104,8 +86,7 @@
     background: var(--bg-canvas);
   }
 
-  .hamburger,
-  .mobileAction {
+  .hamburger {
     display: flex;
   }
 

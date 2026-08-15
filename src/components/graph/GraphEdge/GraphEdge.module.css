@@ -1,0 +1,21 @@
+.path {
+  stroke: var(--border-strong);
+  stroke-width: 1.5;
+  fill: none;
+  transition: opacity var(--dur-fast) var(--ease);
+}
+
+.backEdge {
+  stroke-dasharray: 4 3;
+}
+
+/* Critical Path Mode: per SPEC, on-path edges go --signal-critical at
+   2.5px — the same existing token used for on-path nodes, not a new hue. */
+.critical {
+  stroke: var(--signal-critical);
+  stroke-width: 2.5;
+}
+
+.dimmed {
+  opacity: 0.35;
+}

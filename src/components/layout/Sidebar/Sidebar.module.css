@@ -55,6 +55,14 @@
   text-align: left;
 }
 
+/* Non-interactive variant of .miniCard — the workspace name display has no
+   switching action behind it (single-workspace app today), so it renders as
+   plain text-bearing markup rather than a <button>: no pointer cursor, not
+   focusable, not announced as a control to assistive tech. */
+.miniCardStatic {
+  cursor: default;
+}
+
 .miniCardText {
   flex: 1;
   min-width: 0;
@@ -87,21 +95,10 @@
   white-space: nowrap;
 }
 
-.miniCardGlyph {
-  flex-shrink: 0;
-  display: flex;
-  color: var(--text-tertiary);
-}
-
-/* --- Search --- */
-.search {
-  flex-shrink: 0;
-  margin: 12px 0 20px;
-}
-
 /* --- Scroll region --- */
 .scrollRegion {
   flex: 1;
+  margin-top: 20px;
   overflow-y: auto;
   min-height: 0;
 }

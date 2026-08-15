@@ -1,4 +1,4 @@
-# DESIGN SPEC — SOFTDECK
+# DESIGN SPEC — PM
 
 Full replacement. Supersedes all previous versions of this file.
 Information architecture is unchanged: Workspace → Projects → Sections → Tasks →

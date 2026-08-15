@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import styles from "@/pages/KitchenSinkPage/KitchenSinkPage.module.css";
 import { Card } from "@/components/primitives/Card";
 import { IconTile } from "@/components/primitives/IconTile";
@@ -30,8 +30,13 @@ import { EmptyState } from "@/components/primitives/EmptyState";
 import { Table, TableCardView, type TableColumn, type TableRowData } from "@/components/primitives/Table";
 import { CardGrid } from "@/components/primitives/CardGrid";
 import { BottomSheet } from "@/components/primitives/BottomSheet";
-import { HomeIcon, TasksIcon, ProjectIcon, SearchIcon } from "@/components/icons";
+import { DependencyGraph } from "@/components/graph/DependencyGraph";
+import { HomeIcon, TasksIcon, ProjectIcon, SearchIcon, BlockedIcon } from "@/components/icons";
+import { computeGraphLayout } from "@/lib/graph";
+import { computeCriticalPath } from "@/lib/criticalPath";
 import type { StatusType, PriorityLevel } from "@/types/database";
+import type { TaskDep } from "@/types/database";
+import type { TaskView } from "@/types/ui";
 
 const ALL_STATUSES: StatusType[] = ["to_do", "in_progress", "waiting", "blocked", "done"];
 const ALL_PRIORITIES: PriorityLevel[] = ["critical", "high", "medium", "low"];
@@ -528,6 +533,184 @@ function TableBlock() {
   );
 }
 
+function ksTask(
+  id: string,
+  title: string,
+  status: StatusType,
+  priority: PriorityLevel = "medium",
+  dates: { startDate: string | null; dueDate: string | null } = { startDate: null, dueDate: null },
+): TaskView {
+  return {
+    id,
+    title,
+    description: null,
+    projectId: "ks-project",
+    sectionId: "ks-section",
+    parentTaskId: null,
+    priority,
+    state: status === "waiting"
+      ? { status: "waiting", delayCause: { id: "ks-cause", name: "Review" }, waitingSince: new Date().toISOString() }
+      : { status, delayCause: null, waitingSince: null },
+    startDate: dates.startDate,
+    dueDate: dates.dueDate,
+    position: null,
+    assignees: [],
+    dependsOn: [],
+    blocks: [],
+    subtasks: [],
+    createdBy: null,
+    createdAt: new Date().toISOString(),
+    updatedAt: null,
+    isDeleted: false,
+  };
+}
+
+function ksDep(id: string, blockingId: string, blockedId: string): TaskDep {
+  return { id, blocking_task_id: blockingId, blocked_task_id: blockedId, created_at: null };
+}
+
+function span(startDate: string, days: number): { startDate: string; dueDate: string } {
+  const due = new Date(startDate);
+  due.setUTCDate(due.getUTCDate() + days);
+  return { startDate, dueDate: due.toISOString().slice(0, 10) };
+}
+
+const DAG_TASKS: TaskView[] = [
+  ksTask("ks-dag-a", "Define schema", "done", "high"),
+  ksTask("ks-dag-b", "Build API", "in_progress", "critical"),
+  ksTask("ks-dag-c", "Write docs", "to_do", "low"),
+  ksTask("ks-dag-d", "Ship client", "to_do", "high"),
+];
+const DAG_DEPS: TaskDep[] = [
+  ksDep("ks-dep-ab", "ks-dag-a", "ks-dag-b"),
+  ksDep("ks-dep-ac", "ks-dag-a", "ks-dag-c"),
+  ksDep("ks-dep-bd", "ks-dag-b", "ks-dag-d"),
+  ksDep("ks-dep-cd", "ks-dag-c", "ks-dag-d"),
+];
+const DAG_LAYOUT = computeGraphLayout(DAG_DEPS, DAG_TASKS.map((t) => t.id));
+
+const CYCLE_TASKS: TaskView[] = [
+  ksTask("ks-cycle-a", "Design spec", "in_progress", "high"),
+  ksTask("ks-cycle-b", "Review spec", "waiting", "medium"),
+  ksTask("ks-cycle-c", "Revise spec", "blocked", "medium"),
+];
+const CYCLE_DEPS: TaskDep[] = [
+  ksDep("ks-cdep-ab", "ks-cycle-a", "ks-cycle-b"),
+  ksDep("ks-cdep-bc", "ks-cycle-b", "ks-cycle-c"),
+  ksDep("ks-cdep-ca", "ks-cycle-c", "ks-cycle-a"),
+];
+const CYCLE_LAYOUT = computeGraphLayout(CYCLE_DEPS, CYCLE_TASKS.map((t) => t.id));
+
+const ISOLATED_TASKS: TaskView[] = [ksTask("ks-isolated", "Standalone task", "to_do", "low")];
+const ISOLATED_LAYOUT = computeGraphLayout([], ISOLATED_TASKS.map((t) => t.id));
+
+// Unambiguous single critical path: a straight 3-day -> 2-day -> 4-day chain
+// with one short side branch that finishes well before the main chain, so
+// only one path is ever critical.
+const CPM_SINGLE_TASKS: TaskView[] = [
+  ksTask("ks-cpm1-a", "Kickoff", "done", "high", span("2026-07-01", 3)),
+  ksTask("ks-cpm1-b", "Build", "in_progress", "critical", span("2026-07-04", 2)),
+  ksTask("ks-cpm1-c", "Ship", "to_do", "high", span("2026-07-06", 4)),
+  ksTask("ks-cpm1-side", "Docs (short side branch)", "to_do", "low", span("2026-07-04", 1)),
+];
+const CPM_SINGLE_DEPS: TaskDep[] = [
+  ksDep("ks-cpm1-dep-ab", "ks-cpm1-a", "ks-cpm1-b"),
+  ksDep("ks-cpm1-dep-bc", "ks-cpm1-b", "ks-cpm1-c"),
+  ksDep("ks-cpm1-dep-aside", "ks-cpm1-a", "ks-cpm1-side"),
+];
+const CPM_SINGLE_LAYOUT = computeGraphLayout(CPM_SINGLE_DEPS, CPM_SINGLE_TASKS.map((t) => t.id));
+
+// Two tied parallel critical chains: a diamond where both forks take exactly
+// 3 days, so both a->b1->d and a->b2->d have zero slack simultaneously.
+const CPM_TIED_TASKS: TaskView[] = [
+  ksTask("ks-cpm2-a", "Spec freeze", "done", "high", span("2026-07-01", 2)),
+  ksTask("ks-cpm2-b1", "Backend work", "in_progress", "critical", span("2026-07-03", 3)),
+  ksTask("ks-cpm2-b2", "Frontend work", "in_progress", "critical", span("2026-07-03", 3)),
+  ksTask("ks-cpm2-d", "Integrate", "to_do", "high", span("2026-07-06", 2)),
+];
+const CPM_TIED_DEPS: TaskDep[] = [
+  ksDep("ks-cpm2-dep-ab1", "ks-cpm2-a", "ks-cpm2-b1"),
+  ksDep("ks-cpm2-dep-ab2", "ks-cpm2-a", "ks-cpm2-b2"),
+  ksDep("ks-cpm2-dep-b1d", "ks-cpm2-b1", "ks-cpm2-d"),
+  ksDep("ks-cpm2-dep-b2d", "ks-cpm2-b2", "ks-cpm2-d"),
+];
+const CPM_TIED_LAYOUT = computeGraphLayout(CPM_TIED_DEPS, CPM_TIED_TASKS.map((t) => t.id));
+
+// Tasks missing dates: ks-cpm3-b has neither startDate nor dueDate, so it
+// falls back to DEFAULT_DURATION_DAYS (1 day) — the "(est.)" marker next to
+// its slack readout is what makes that fallback visible rather than
+// blending in with the real 3-day/2-day durations on either side of it.
+const CPM_MISSING_TASKS: TaskView[] = [
+  ksTask("ks-cpm3-a", "Research", "done", "medium", span("2026-07-01", 3)),
+  ksTask("ks-cpm3-b", "Undated task", "to_do", "medium"),
+  ksTask("ks-cpm3-c", "Finalize", "to_do", "medium", span("2026-07-05", 2)),
+];
+const CPM_MISSING_DEPS: TaskDep[] = [
+  ksDep("ks-cpm3-dep-ab", "ks-cpm3-a", "ks-cpm3-b"),
+  ksDep("ks-cpm3-dep-bc", "ks-cpm3-b", "ks-cpm3-c"),
+];
+const CPM_MISSING_LAYOUT = computeGraphLayout(CPM_MISSING_DEPS, CPM_MISSING_TASKS.map((t) => t.id));
+
+/** Wraps a DependencyGraph demo with its own Critical Path Mode toggle state
+ * (local useState, not a URL param — kitchen-sink entries aren't routed) so
+ * each demo can show the mode already engaged without a click. */
+function CpmDemo({ layout, tasks, height, defaultOn = true }: { layout: ReturnType<typeof computeGraphLayout>; tasks: TaskView[]; height: number; defaultOn?: boolean }) {
+  const [isCriticalPathMode, setIsCriticalPathMode] = useState(defaultOn);
+  const criticalPath = useMemo(() => computeCriticalPath(layout, tasks), [layout, tasks]);
+  return (
+    <div style={{ height, border: "1px solid var(--border)", borderRadius: "var(--radius-card)", overflow: "hidden" }}>
+      <DependencyGraph
+        layout={layout}
+        tasks={tasks}
+        onNodeActivate={() => {}}
+        criticalPath={criticalPath}
+        isCriticalPathMode={isCriticalPathMode}
+        onToggleCriticalPathMode={() => setIsCriticalPathMode((v) => !v)}
+      />
+    </div>
+  );
+}
+
+function GraphBlock() {
+  return (
+    <>
+      <Section title="DependencyGraph — normal DAG (fan-out + fan-in, diamond shape)">
+        <CpmDemo layout={DAG_LAYOUT} tasks={DAG_TASKS} height={360} defaultOn={false} />
+      </Section>
+
+      <Section title="DependencyGraph — contains a cycle (dashed reversed-curve edges mark the back-edges)">
+        <CpmDemo layout={CYCLE_LAYOUT} tasks={CYCLE_TASKS} height={320} defaultOn={false} />
+      </Section>
+
+      <Section title="DependencyGraph — single isolated node (no edges)">
+        <CpmDemo layout={ISOLATED_LAYOUT} tasks={ISOLATED_TASKS} height={200} defaultOn={false} />
+      </Section>
+
+      <Section title="DependencyGraph — empty state (no dependencies at all)">
+        <div style={{ border: "1px solid var(--border)", borderRadius: "var(--radius-card)" }}>
+          <EmptyState icon={<BlockedIcon size={18} />} message="No dependencies to show for this project" />
+        </div>
+      </Section>
+
+      <Section title="Critical Path Mode — one unambiguous critical path (side branch finishes early, stays dimmed)">
+        <CpmDemo layout={CPM_SINGLE_LAYOUT} tasks={CPM_SINGLE_TASKS} height={340} />
+      </Section>
+
+      <Section title="Critical Path Mode — two tied parallel critical chains (both forks equal duration, both emphasized)">
+        <CpmDemo layout={CPM_TIED_LAYOUT} tasks={CPM_TIED_TASKS} height={320} />
+      </Section>
+
+      <Section title="Critical Path Mode — a task with no start/due date (falls back to the 1-day default, marked &quot;(est.)&quot;)">
+        <CpmDemo layout={CPM_MISSING_LAYOUT} tasks={CPM_MISSING_TASKS} height={280} />
+      </Section>
+
+      <Section title="Critical Path Mode — degraded state (cycle present, toggle explains why CPM is unavailable)">
+        <CpmDemo layout={CYCLE_LAYOUT} tasks={CYCLE_TASKS} height={340} />
+      </Section>
+    </>
+  );
+}
+
 function ResponsiveBlock() {
   return (
     <>
@@ -787,6 +970,7 @@ function KitchenSinkContent() {
 
       <ControlsBlock />
       <TableBlock />
+      <GraphBlock />
       <ResponsiveBlock />
     </>
   );

@@ -1,0 +1,122 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.canvasView {
+  height: 560px;
+}
+
+.listView {
+  display: none;
+}
+
+/* Below --bp-tablet (900px) the SVG canvas is unusable — too little room to
+   pan/zoom meaningfully — so the grouped list replaces it, same dual-render
+   + CSS-toggle pattern as Table's grid/card breakpoint. */
+@media (max-width: 899px) {
+  .canvasView {
+    display: none;
+  }
+
+  .listView {
+    display: block;
+  }
+}
+
+.listWrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.listRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-4);
+  border: none;
+  border-bottom: 1px solid var(--border-subtle);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.listRow:last-child {
+  border-bottom: none;
+}
+
+.listRow:hover {
+  background: var(--bg-hover);
+}
+
+.listRowHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.listRowTitle {
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+  margin-right: auto;
+}
+
+.listGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: var(--space-2);
+  border-left: 2px solid var(--border);
+}
+
+.listGroupLabel {
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-tertiary);
+}
+
+.listGroupItems {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.listSlack {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.listSlackCritical {
+  color: var(--signal-critical-text);
+  font-weight: var(--weight-medium);
+}
+
+.listDegraded {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-4);
+  background: var(--signal-critical-dim);
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.listDegradedLabel {
+  font-weight: var(--weight-semibold);
+  color: var(--signal-critical-text);
+}

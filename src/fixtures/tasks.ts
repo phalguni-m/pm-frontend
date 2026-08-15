@@ -17,6 +17,17 @@ import {
 
 // Due dates are computed relative to module-load time so the fixture set
 // always straddles "today" instead of drifting permanently into the past.
+//
+// startDate is computed the same way (daysFromNow(n - durationDays), n being
+// this task's own dueDate offset below) rather than as a fixed calendar
+// literal. A fixed startDate paired with a daysFromNow dueDate meant every
+// task's (dueDate - startDate) span grew by one day per real-world day —
+// CPM durations, slack, and the critical set all drifted over time, making
+// the graph page's output different from one day to the next for identical
+// code. Each call site's "- N" comment is that task's original literal
+// duration, preserved exactly (same for isEstimatedDuration: false either
+// way) — this is a representation change, dates now float together instead
+// of the gap between them growing, not a data change.
 function daysFromNow(n: number): string {
   const date = new Date();
   date.setUTCHours(0, 0, 0, 0);
@@ -66,7 +77,7 @@ const SEEDS: TaskSeed[] = [
     parentTaskId: null,
     priority: "high",
     state: notWaiting("done"),
-    startDate: "2026-06-01",
+    startDate: daysFromNow(-75), // 30-day duration, preserved
     dueDate: daysFromNow(-45),
     position: 0,
     assigneeIds: ["member-vismaya"],
@@ -84,7 +95,7 @@ const SEEDS: TaskSeed[] = [
     parentTaskId: null,
     priority: "critical",
     state: notWaiting("in_progress"),
-    startDate: "2026-06-10",
+    startDate: daysFromNow(-66), // 36-day duration, preserved
     dueDate: daysFromNow(-30),
     position: 1,
     assigneeIds: ["member-vismaya", "member-namana"],
@@ -102,7 +113,7 @@ const SEEDS: TaskSeed[] = [
     parentTaskId: null,
     priority: "high",
     state: waiting("delay-dependency", "2026-08-05T08:00:00.000Z"),
-    startDate: "2026-06-24",
+    startDate: daysFromNow(-52), // 56-day duration, preserved
     dueDate: daysFromNow(4),
     position: 2,
     assigneeIds: ["member-namana"],
@@ -120,7 +131,7 @@ const SEEDS: TaskSeed[] = [
     parentTaskId: null,
     priority: "critical",
     state: waiting("delay-external-input", "2026-08-02T09:00:00.000Z"),
-    startDate: "2026-06-20",
+    startDate: daysFromNow(-56), // 65-day duration, preserved
     dueDate: daysFromNow(9),
     position: 3,
     assigneeIds: ["member-phalguni"],
@@ -176,7 +187,7 @@ const SEEDS: TaskSeed[] = [
     parentTaskId: null,
     priority: "medium",
     state: notWaiting("to_do"),
-    startDate: "2026-08-01",
+    startDate: daysFromNow(-14), // 32-day duration, preserved
     dueDate: daysFromNow(18),
     position: 0,
     assigneeIds: ["member-purva"],
@@ -212,7 +223,7 @@ const SEEDS: TaskSeed[] = [
     parentTaskId: null,
     priority: "low",
     state: notWaiting("to_do"),
-    startDate: "2026-07-01",
+    startDate: daysFromNow(-45), // 40-day duration, preserved
     dueDate: daysFromNow(-5),
     position: 2,
     assigneeIds: ["member-purva"],
@@ -232,7 +243,7 @@ const SEEDS: TaskSeed[] = [
     parentTaskId: null,
     priority: "high",
     state: notWaiting("done"),
-    startDate: "2026-05-01",
+    startDate: daysFromNow(-105), // 45-day duration, preserved
     dueDate: daysFromNow(-60),
     position: 0,
     assigneeIds: ["member-phalguni"],
@@ -250,7 +261,7 @@ const SEEDS: TaskSeed[] = [
     parentTaskId: null,
     priority: "medium",
     state: notWaiting("in_progress"),
-    startDate: "2026-07-20",
+    startDate: daysFromNow(-26), // 33-day duration, preserved
     dueDate: daysFromNow(7),
     position: 1,
     assigneeIds: ["member-phalguni"],
@@ -268,7 +279,7 @@ const SEEDS: TaskSeed[] = [
     parentTaskId: null,
     priority: "low",
     state: waiting("delay-review", "2026-08-08T12:00:00.000Z"),
-    startDate: "2026-07-25",
+    startDate: daysFromNow(-21), // 32-day duration, preserved
     dueDate: daysFromNow(11),
     position: 2,
     assigneeIds: ["member-purva"],
@@ -288,7 +299,7 @@ const SEEDS: TaskSeed[] = [
     parentTaskId: null,
     priority: "critical",
     state: notWaiting("blocked"),
-    startDate: "2026-07-01",
+    startDate: daysFromNow(-45), // 61-day duration, preserved
     dueDate: daysFromNow(16),
     position: 0,
     assigneeIds: ["member-namana"],
@@ -306,7 +317,7 @@ const SEEDS: TaskSeed[] = [
     parentTaskId: null,
     priority: "medium",
     state: notWaiting("done"),
-    startDate: "2026-06-01",
+    startDate: daysFromNow(-75), // 20-day duration, preserved
     dueDate: daysFromNow(-55),
     position: 1,
     assigneeIds: ["member-vismaya"],
@@ -324,7 +335,7 @@ const SEEDS: TaskSeed[] = [
     parentTaskId: null,
     priority: "high",
     state: notWaiting("in_progress"),
-    startDate: "2026-06-05",
+    startDate: daysFromNow(-71), // 74-day duration, preserved
     dueDate: daysFromNow(3),
     position: 2,
     assigneeIds: ["member-vismaya", "member-purva"],
@@ -380,7 +391,7 @@ const SEEDS: TaskSeed[] = [
     parentTaskId: null,
     priority: "critical",
     state: waiting("delay-approval", "2026-08-07T10:00:00.000Z"),
-    startDate: "2026-07-05",
+    startDate: daysFromNow(-41), // 47-day duration, preserved
     dueDate: daysFromNow(6),
     position: 1,
     assigneeIds: ["member-namana"],
@@ -400,7 +411,7 @@ const SEEDS: TaskSeed[] = [
     parentTaskId: null,
     priority: "high",
     state: notWaiting("in_progress"),
-    startDate: "2026-06-15",
+    startDate: daysFromNow(-61), // 63-day duration, preserved
     dueDate: daysFromNow(2),
     position: 0,
     assigneeIds: ["member-purva"],
@@ -418,7 +429,7 @@ const SEEDS: TaskSeed[] = [
     parentTaskId: null,
     priority: "critical",
     state: notWaiting("to_do"),
-    startDate: "2026-07-10",
+    startDate: daysFromNow(-36), // 49-day duration, preserved
     dueDate: daysFromNow(13),
     position: 1,
     assigneeIds: ["member-purva"],
@@ -436,7 +447,7 @@ const SEEDS: TaskSeed[] = [
     parentTaskId: null,
     priority: "medium",
     state: notWaiting("done"),
-    startDate: "2026-05-20",
+    startDate: daysFromNow(-87), // 37-day duration, preserved
     dueDate: daysFromNow(-50),
     position: 2,
     assigneeIds: ["member-phalguni"],
@@ -456,7 +467,7 @@ const SEEDS: TaskSeed[] = [
     parentTaskId: null,
     priority: "medium",
     state: notWaiting("blocked"),
-    startDate: "2026-07-01",
+    startDate: daysFromNow(-45), // 55-day duration, preserved
     dueDate: daysFromNow(10),
     position: 0,
     assigneeIds: ["member-purva"],

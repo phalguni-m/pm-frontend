@@ -185,28 +185,12 @@ export interface Comment {
 }
 
 // ---------------------------------------------------------------------------
-// Dependency graph
-// ---------------------------------------------------------------------------
-
-export interface GraphNode {
-  id: string;
-  title: string;
-  status: StatusType;
-  onCriticalPath: boolean;
-}
-
-export interface GraphEdge {
-  fromId: string;
-  toId: string;
-  onCriticalPath: boolean;
-}
-
-export interface DependencyGraph {
-  nodes: GraphNode[];
-  edges: GraphEdge[];
-  cycles: string[][];
-}
-
+// Dependency graph — see src/lib/graph.ts (GraphLayout, GraphNodeLayout,
+// GraphEdgeLayout) and src/lib/criticalPath.ts (CriticalPathResult) for the
+// real graph/CPM types. The pre-backend GraphNode/GraphEdge/DependencyGraph
+// interfaces that used to live here duplicated those under colliding names
+// (a type named GraphNode alongside a component named GraphNode) and were
+// never referenced outside this file — deleted rather than reconciled.
 // ---------------------------------------------------------------------------
 // Mutation payloads (emitted via callbacks, never executed by components)
 // ---------------------------------------------------------------------------

@@ -1,0 +1,90 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* --- Overall Tasks --- */
+.overallHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.overallLabel {
+  font-size: var(--text-xl);
+  color: var(--text-primary);
+}
+
+.overallTotal {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+/* --- Attention --- */
+.attentionFigures {
+  display: flex;
+  gap: var(--space-6);
+  margin-bottom: var(--space-5);
+}
+
+.attentionFigure {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.attentionLabel {
+  font-size: 12px;
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.attentionValue {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+.causeRows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.causeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--text-sm);
+}
+
+.causeLabel {
+  color: var(--text-secondary);
+}
+
+.causeCount {
+  color: var(--text-primary);
+}
+
+/* --- Progress --- */
+.progressStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.onTimeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.onTimeLabel {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
