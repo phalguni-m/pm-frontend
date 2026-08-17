@@ -162,14 +162,23 @@ top-level tasks in the same response**, distinguished only by `parent_task_id`. 
 interface DelayCause { id: string; name: string }
 ```
 
-**No server function possible today.** A `delay_cause` table exists in the SQL schema
-(`id uuid`, `name text` unique) but **no route or service in any of the three backend repos
-exposes it** — no `GET /api/delay-causes` or equivalent. `task.delay_cause_id` is a bare FK the
-API passes through blind on `PATCH /api/tasks/:taskId`, never resolved to a name server-side.
+**Endpoint:** `GET /api/delay-causes` — now available. Returns the seeded `delay_cause` rows.
+`fixtures/delayCauses.ts` has been updated to the four real seeded rows (exact ids, exact
+`name` strings as stored server-side).
 
-**Must stay `AbsentValue` / a hardcoded local list until a `GET /api/delay-causes` endpoint is
-added.** This is one of the four "blocked on backend" asks below — there is currently no way to
-show a real delay-cause name for a waiting task via the live API at all.
+**Names are stored lowercase** (`"api delay"`, `"design not ready"`, `"dependency blocked"`,
+`"scope change"`) and must be kept lowercase through the data layer — do not title-case,
+sentence-case, or otherwise reformat `name` on the way in from the API or in the fixture.
+Display formatting (sentence-casing for presentation) happens **at render only**
+(`sentenceCase()` in `src/lib/format.ts`, applied inside `WaitingIndicator` and at each other
+render site — see that function's own comment). Reformatting in the data layer would make the
+stored value no longer match the server's, breaking any future comparison/lookup by exact name.
+
+**Create/update:** Vismaya's backend also added create/update support for delay causes.
+The exact route paths are not confirmed against this repo's naming-convention inference —
+**exists, exact path TBC.** (Existing `/api/dependencies` routes use a flat noun path with no
+per-record segment for `POST`, e.g. `POST /api/dependencies`, but that pattern isn't a reliable
+guess for a different resource without confirming against the actual route file.)
 
 ### `TASK_INTELLIGENCE_BY_ID: Record<string, TaskIntelligence>`
 
@@ -233,8 +242,8 @@ in any of the three backend repos.** Fully absent from the live API surface desp
 being provisioned.
 
 **Must remain `AbsentValue`, or the whole Comments feature stays fixture-only, until
-`GET`/`POST /api/tasks/:taskId/comments` are added server-side.** Second of the four "blocked on
-backend" asks below.
+`GET`/`POST /api/tasks/:taskId/comments` are added server-side.** Still one of the two remaining
+"blocked on backend" asks below (item 4) — the other two original asks have since shipped.
 
 ### `DEPENDENCIES: TaskDep[]`
 
@@ -242,18 +251,19 @@ backend" asks below.
 interface TaskDep { id: string; blocking_task_id: string | null; blocked_task_id: string | null; created_at: string | null }
 ```
 
-**Endpoint:** `GET /api/dependencies/task/:taskId` — but this is **per-task, not project-wide**,
-and returns both directions (edges where the task is blocking, and where it's blocked). **There
-is no project-wide "give me every dependency edge" endpoint.** `dependencyService.getProjectDeps()`
-exists server-side and is used internally by risk/dependency-analysis services, but it is never
-wired to an HTTP route.
+**Endpoint:** `GET /api/dependencies/project/:projectId` — now available. Returns the whole
+project's dependency list in one call; the previous per-task N-calls-plus-dedup workaround
+(call `GET /api/dependencies/task/:taskId` once per task in the project and de-duplicate edges
+client-side) is no longer needed for building a project-wide graph.
 
-**Assembly required:** to build the full project dependency graph this repo's `src/lib/graph.ts`
-(`computeGraphLayout`) and `src/lib/criticalPath.ts` (`computeCriticalPath`) both need, the
-integrator must call `GET /api/dependencies/task/:taskId` once per task in the project and
-de-duplicate edges client-side (an edge will appear in both endpoints' results if both its
-blocking and blocked task are in the same project). This is the **first** of the four "blocked
-on backend" asks below — a bulk endpoint would remove N calls down to 1.
+`GET /api/dependencies/task/:taskId` still exists as a separate, per-task endpoint (both
+directions — edges where the task is blocking, and where it's blocked) for callers that only
+need one task's edges rather than the whole project.
+
+**Assembly required:** none beyond the standard fetch — `src/lib/graph.ts`
+(`computeGraphLayout`) and `src/lib/criticalPath.ts` (`computeCriticalPath`) can now be fed
+directly from one `GET /api/dependencies/project/:projectId` call per project instead of one
+call per task.
 
 **Also note:** `GraphLayout.cycles` (added in this repo's own Block 13) has no server
 equivalent — the backend's `possibleCycle()` check only runs at dependency-*creation* time to
@@ -262,10 +272,11 @@ in a project's graph. `lib/graph.ts`'s `detectCycles` must keep running client-s
 of backend changes, since the server will never expose this as a queryable fact (see
 `INTEGRATION_AUDIT.md` §7's explicit ownership recommendation: full-project layout, cycle
 surfacing, and CPM slack computation are not duplicated server-side and are correctly a
-client-side responsibility, fed by the flat per-task edge list).
+client-side responsibility) — this stays true even now that the edge list itself is fetched in
+one project-wide call rather than assembled from N per-task calls.
 
-**Suggested replacement:** `getProjectDependencies(projectId): Promise<TaskDep[]>` — internally
-either the wished-for bulk endpoint (once it exists) or the current N-calls-plus-dedup fallback.
+**Suggested replacement:** `getProjectDependencies(projectId): Promise<TaskDep[]>` — a direct
+call to `GET /api/dependencies/project/:projectId`, no client-side dedup step needed.
 
 ### `PROJECTS_WITH_TASKS: ProjectView[]`
 
@@ -333,40 +344,39 @@ and §10 ("frontend needs the API does not provide") — not re-derived here.
 
 | Field / concept | Why it has no server source |
 |---|---|
-| `DelayCause` (whole concept — id/name) | Table exists, zero routes expose it. |
 | `Comment` (whole concept) | Table exists, zero routes touch it. |
 | `TaskState.waitingSince` | No stored column anywhere. Closest equivalent is `StatusTimeline.enteredAt` for the open `"waiting"` segment, itself a derived value from a separate endpoint (`GET /api/history/tasks/:taskId/segments`), not a field on the task object. |
 | `TaskIntelligence.impact` as one scalar | Server gives 3 separate dependent counts (`directDependents`/`totalDependents`/`blockedDependents`), not 1 number — the frontend must pick or compute its own formula. |
 | `ProjectSummary.overdueCount` / `.statusCounts` / `.memberCount` | No rollup endpoint; must be computed client-side from flat task/member fetches. |
 | Current-user profile (`name`/`email` for "me") | No `/me` endpoint at all — only obtainable indirectly (decode the login JWT's claims, or find your own id inside a workspace-members list you already fetched). |
 | `HistoryEntry.eventType` values `priority_changed`, `dependency_added`, `dependency_removed`, `due_date_changed` | Server never emits these — only `created`/`updated`/`deleted` (`task_history`) and `assignee_added`/`assignee_removed` (`workflow_event`). Must be dropped from `KNOWN_EVENT_TYPES` or computed client-side from snapshot diffs. |
-| `GraphLayout.cycles` (project-wide dependency graph edges + detected cycles) | No project-wide edge-list endpoint; no cycle-query endpoint (write-time rejection only). Both are and will remain client-side computations fed by N per-task calls. |
+| `GraphLayout.cycles` (detected cycles in the dependency graph) | No cycle-query endpoint exists (write-time rejection only) — the edge list itself is now available in one call (`GET /api/dependencies/project/:projectId`), but cycle detection over that list is and will remain a client-side computation. |
 
 ---
 
 ## Blocked on backend — explicit asks
 
-Four concrete endpoint asks, each backed by an audit citation:
+Originally four concrete endpoint asks, each backed by an audit citation. Two have since shipped
+(marked resolved below) — kept in the list rather than deleted so the history of what was asked
+for and delivered stays visible.
 
-1. **Project-wide dependency-edge-list endpoint** (`GET /api/projects/:projectId/dependencies` or
-   similar). Today: `GET /api/dependencies/task/:taskId` is per-task only; building a full
-   project graph costs N calls + client-side dedup. `dependencyService.getProjectDeps()` already
-   exists server-side and does exactly this — it's just never wired to a route.
-   (`INTEGRATION_AUDIT.md` §5, §10 item 7.)
-2. **Delay-cause list endpoint + seed data** (`GET /api/delay-causes`). Today: the `delay_cause`
-   table exists in Postgres but has no route and, per the audit, **no seed data in any
-   migration** — even once a route exists, someone needs to decide what causes actually get
-   seeded (this repo's fixture list — Dependency/Review/Approval/Clarification/External input —
-   is a frontend invention, not a confirmed server-side set). (`INTEGRATION_AUDIT.md` §2 enum
-   table, §10 item 3.)
-3. **`GET /api/auth/me`** (or equivalent "get current user + memberships" boot endpoint). Today:
-   there is no way to fetch the logged-in user's own `name`/`email`/`job_role_id` from `app_user`
-   in one call — only other users' profiles are ever returned, embedded in members/assignees
-   joins. (`INTEGRATION_AUDIT.md` §6, §10 item 5.)
+1. ~~**Project-wide dependency-edge-list endpoint.**~~ **Resolved** — `GET
+   /api/dependencies/project/:projectId` now exists and returns the whole project's dependency
+   list in one call. See the `DEPENDENCIES` entry above. (Originally: `INTEGRATION_AUDIT.md` §5,
+   §10 item 7.)
+2. ~~**Delay-cause list endpoint + seed data.**~~ **Resolved** — `GET /api/delay-causes` now
+   exists and the table is seeded with four rows (`api delay`, `design not ready`, `dependency
+   blocked`, `scope change`; `fixtures/delayCauses.ts` updated to match exactly). Vismaya also
+   added create/update support for delay causes — exact route paths not yet confirmed, see the
+   `DELAY_CAUSES` entry above. (Originally: `INTEGRATION_AUDIT.md` §2 enum table, §10 item 3.)
+3. **`GET /api/auth/me`** (or equivalent "get current user + memberships" boot endpoint). Still
+   blocked — there is no way to fetch the logged-in user's own `name`/`email`/`job_role_id` from
+   `app_user` in one call — only other users' profiles are ever returned, embedded in
+   members/assignees joins. (`INTEGRATION_AUDIT.md` §6, §10 item 5.)
 4. **A decision on comments**: either build `GET`/`POST /api/tasks/:taskId/comments` against the
    already-provisioned `task_comments` table, or make an explicit product call to drop the
-   Comments tab/feature rather than leave it permanently fixture-only. Currently the table exists
-   and is fully unreachable via HTTP. (`INTEGRATION_AUDIT.md` §3a, §10 item 4.)
+   Comments tab/feature rather than leave it permanently fixture-only. Still blocked — the table
+   exists and is fully unreachable via HTTP. (`INTEGRATION_AUDIT.md` §3a, §10 item 4.)
 
-No implementation is proposed for any of these four — same "report gaps, don't build" stance the
+No implementation is proposed for the two still open — same "report gaps, don't build" stance the
 audit itself took.

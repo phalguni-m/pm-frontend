@@ -103,9 +103,47 @@
   outline: none;
 }
 
+/* --- Scrolling body ---
+   Everything between the pinned header and the pinned footer (meta strip,
+   field grid, dependency strip, Tabs) lives inside this one scroll
+   container. Tabs itself no longer scrolls internally (see .tabsRegion
+   below) — one scrollbar for the whole middle section, not two nested
+   ones, which is what the mobile full-screen sheet needs too: this is the
+   only scrolling element in the panel at any width, so there's nothing to
+   double-scroll against the page body. */
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+.body:focus {
+  outline: none;
+}
+
+.body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.body::-webkit-scrollbar-thumb {
+  background-color: var(--border-strong);
+  border-radius: var(--radius-pill);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.body::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-tertiary);
+}
+
 /* --- Meta strip --- */
 .metaStrip {
-  flex-shrink: 0;
   padding: 10px 20px;
   background: var(--bg-strip);
   font-size: var(--text-xs);
@@ -114,7 +152,6 @@
 
 /* --- Field grid --- */
 .fieldGrid {
-  flex-shrink: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
@@ -161,7 +198,6 @@
 
 /* --- Dependency summary strip --- */
 .depStrip {
-  flex-shrink: 0;
   padding: 7px 20px;
   font-family: var(--font-mono);
   font-size: var(--text-xs);
@@ -169,21 +205,13 @@
   border-bottom: 1px solid var(--border-subtle);
 }
 
-/* Makes Tabs itself the flexible region in .panel's column (see Tabs.tsx's
-   className prop / Tabs.module.css's .root comment) — without this, Tabs
-   sized to its content's natural height and pushed past .panel's own
-   fixed bottom edge instead of scrolling, since .tabsRegion below (the
-   actual overflow:auto container) sat inside an unconstrained ancestor. */
-.tabsGrow {
-  flex: 1;
-  min-height: 0;
-}
-
-/* --- Tabs body --- */
+/* --- Tabs body ---
+   .tabsGrow is intentionally *not* applied here — Tabs sizes to its
+   content's natural height (Tabs.module.css's .root default) rather than
+   becoming its own flex/scroll region, since .body above is now the single
+   scroll container for the whole middle section. .tabsRegion keeps its own
+   padding but no longer sets its own height/overflow. */
 .tabsRegion {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
   padding: 0 20px;
 }
 
