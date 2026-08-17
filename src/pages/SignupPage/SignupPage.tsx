@@ -4,11 +4,11 @@ import { Card } from "@/components/primitives/Card";
 import { Field } from "@/components/primitives/Field";
 import { Input } from "@/components/primitives/Input";
 import { Button } from "@/components/primitives/Button";
+import styles from "./SignupPage.module.css";
 
-// Owned by Namana (auth). Backing endpoint: POST /api/auth/signup (public —
-// see docs/API_CONTRACT.md). Same localStorage-stopgap caveat as
-// LoginPage.tsx — see the comment there for why.
-const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:3001";
+const API_BASE =
+  (import.meta.env.VITE_API_URL as string | undefined) ??
+  "http://localhost:3001";
 
 interface AuthSession {
   userId: string;
@@ -33,43 +33,56 @@ export function SignupPage() {
     event.preventDefault();
     setError(null);
 
-    // Mirrors the backend's own check (authService.ts) so the person sees
-    // this instantly instead of waiting on a round trip for it.
     if (password.length < MIN_PASSWORD_LENGTH) {
-      setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
+      setError(
+        `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`
+      );
       return;
     }
 
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE}/api/auth/signup`, {
+      const response = await fetch(`${API_BASE}/api/auth/signup`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+        }),
       });
 
-      const body = await res.json().catch(() => ({}));
+      const body = await response.json().catch(() => ({}));
 
-      if (!res.ok) {
+      if (!response.ok) {
         throw new Error(
-          typeof body.error === "string" ? body.error : "Signup failed. Please try again."
+          typeof body.error === "string"
+            ? body.error
+            : "Signup failed. Please try again."
         );
       }
 
       const session = body as AuthSession;
+
       localStorage.setItem("pm-auth", JSON.stringify(session));
 
       navigate("/", { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Signup failed. Please try again.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Signup failed. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div style={{ width: 380, maxWidth: "90vw" }}>
+    <div className={styles.root}>
       <Card
         title="Sign up"
         subtitle="Create an account to get started."
@@ -82,7 +95,7 @@ export function SignupPage() {
         <form
           ref={formRef}
           onSubmit={handleSubmit}
-          style={{ display: "flex", flexDirection: "column", gap: 16 }}
+          className={styles.form}
         >
           <Field label="Name" htmlFor="signup-name" required>
             <Input
@@ -91,7 +104,7 @@ export function SignupPage() {
               autoComplete="name"
               required
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(event) => setName(event.target.value)}
             />
           </Field>
 
@@ -102,7 +115,7 @@ export function SignupPage() {
               autoComplete="email"
               required
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(event) => setEmail(event.target.value)}
             />
           </Field>
 
@@ -111,7 +124,8 @@ export function SignupPage() {
             htmlFor="signup-password"
             required
             errorMessage={
-              password.length > 0 && password.length < MIN_PASSWORD_LENGTH
+              password.length > 0 &&
+              password.length < MIN_PASSWORD_LENGTH
                 ? `At least ${MIN_PASSWORD_LENGTH} characters`
                 : undefined
             }
@@ -123,12 +137,12 @@ export function SignupPage() {
               required
               minLength={MIN_PASSWORD_LENGTH}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(event) => setPassword(event.target.value)}
             />
           </Field>
 
           {error && (
-            <span role="alert" style={{ fontSize: "var(--text-xs)", color: "var(--signal-critical-text)" }}>
+            <span className={styles.error} role="alert">
               {error}
             </span>
           )}
@@ -136,7 +150,7 @@ export function SignupPage() {
           <Button
             variant="primary"
             loading={loading}
-            style={{ width: "100%", justifyContent: "center" }}
+            className={styles.submitButton}
             onClick={() => formRef.current?.requestSubmit()}
           >
             Sign up

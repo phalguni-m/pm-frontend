@@ -4,19 +4,11 @@ import { Card } from "@/components/primitives/Card";
 import { Field } from "@/components/primitives/Field";
 import { Input } from "@/components/primitives/Input";
 import { Button } from "@/components/primitives/Button";
+import styles from "./LoginPage.module.css";
 
-// Owned by Namana (auth). Backing endpoint: POST /api/auth/login (public —
-// see docs/API_CONTRACT.md).
-//
-// No shared API client and no session store exist anywhere in this repo yet
-// (INTEGRATION_AUDIT.md §6 — no GET /api/auth/me, no refresh route, nothing
-// reads a stored token today). This page therefore calls the backend
-// directly and stashes the returned session in localStorage under
-// "pm-auth" as a stopgap so it at least survives a refresh. Wiring that
-// into real app-wide session state / route guarding touches AppShell and
-// router.tsx, which is explicitly out of scope here — flagging it rather
-// than reaching into those files.
-const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:3001";
+const API_BASE =
+  (import.meta.env.VITE_API_URL as string | undefined) ??
+  "http://localhost:3001";
 
 interface AuthSession {
   userId: string;
@@ -40,33 +32,45 @@ export function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE}/api/auth/login`, {
+      const response = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
       });
 
-      const body = await res.json().catch(() => ({}));
+      const body = await response.json().catch(() => ({}));
 
-      if (!res.ok) {
+      if (!response.ok) {
         throw new Error(
-          typeof body.error === "string" ? body.error : "Login failed. Please try again."
+          typeof body.error === "string"
+            ? body.error
+            : "Login failed. Please try again."
         );
       }
 
       const session = body as AuthSession;
+
       localStorage.setItem("pm-auth", JSON.stringify(session));
 
       navigate("/", { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed. Please try again.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Login failed. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div style={{ width: 380, maxWidth: "90vw" }}>
+    <div className={styles.root}>
       <Card
         title="Log in"
         subtitle="Welcome back — enter your details to continue."
@@ -79,7 +83,7 @@ export function LoginPage() {
         <form
           ref={formRef}
           onSubmit={handleSubmit}
-          style={{ display: "flex", flexDirection: "column", gap: 16 }}
+          className={styles.form}
         >
           <Field label="Email" htmlFor="login-email" required>
             <Input
@@ -88,7 +92,7 @@ export function LoginPage() {
               autoComplete="email"
               required
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(event) => setEmail(event.target.value)}
             />
           </Field>
 
@@ -99,12 +103,12 @@ export function LoginPage() {
               autoComplete="current-password"
               required
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(event) => setPassword(event.target.value)}
             />
           </Field>
 
           {error && (
-            <span role="alert" style={{ fontSize: "var(--text-xs)", color: "var(--signal-critical-text)" }}>
+            <span className={styles.error} role="alert">
               {error}
             </span>
           )}
@@ -112,7 +116,7 @@ export function LoginPage() {
           <Button
             variant="primary"
             loading={loading}
-            style={{ width: "100%", justifyContent: "center" }}
+            className={styles.submitButton}
             onClick={() => formRef.current?.requestSubmit()}
           >
             Log in
