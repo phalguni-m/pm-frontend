@@ -137,3 +137,136 @@ export interface TaskImpact {
   totalDependents: number;
   blockedDependents: number;
 }
+
+// ── AI Workflow Engine ──────────────────────────────────────────────────
+// Copied verbatim from the canonical backend's src/types/database.ts
+// (Insights section, Phases 2-4 + Namana's waiting-time/risk additions).
+// API_CONTRACT.md's claim that this file is "byte-identical" to the
+// backend predates this block — it was missing entirely before this
+// change. See the Insights section of API_CONTRACT.md for the endpoints
+// that return these shapes.
+
+export type SeverityLevel = "low" | "medium" | "high" | "critical";
+
+export interface ContextSwitchingFeatures {
+  /** Distinct tasks this user actively worked on (entered in_progress) in the window. */
+  activeTaskCount: number;
+  /** Highest number of tasks this user had in_progress at the same time. */
+  peakConcurrentActiveTasks: number;
+  /** Time-weighted average number of concurrently active tasks. */
+  avgConcurrentActiveTasks: number;
+  /** Number of times the user picked up an additional task while another was still active. */
+  contextSwitchCount: number;
+  /** contextSwitchCount normalized per day of observed activity. */
+  contextSwitchesPerDay: number;
+  /** Average duration (hours) a task stayed in_progress for this user. */
+  avgTaskActiveDurationHours: number;
+  /** Number of days spanned by this user's observed activity. */
+  windowDays: number;
+}
+
+export interface ContextSwitchingResult {
+  userId: string;
+  userName: string | null;
+  userEmail: string | null;
+  /** 0-100 severity of this user's context-switching behaviour, independent of peers. */
+  contextSwitchingScore: number;
+  /** 0-100 how statistically unusual this user is relative to the rest of the project's team. */
+  anomalyScore: number;
+  isAnomaly: boolean;
+  severity: SeverityLevel;
+  method: "iqr" | "isolation_forest";
+  features: ContextSwitchingFeatures;
+  explanation: string;
+  recommendation: string;
+}
+
+export interface HandoffFeatures {
+  /** Hours between the previous owner being removed and the next owner being added. */
+  handoffDelayHours: number;
+  /** Hours the task then sat in waiting/blocked state before work resumed after the handoff. */
+  postHandoffIdleHours: number;
+}
+
+export interface HandoffResult {
+  taskId: string;
+  taskTitle: string | null;
+  previousOwnerId: string | null;
+  previousOwnerName: string | null;
+  nextOwnerId: string | null;
+  nextOwnerName: string | null;
+  /** When the previous owner was removed from the task. */
+  removedAt: string;
+  /** When the next owner was added to the task. */
+  addedAt: string;
+  /** 0-100 severity of this handoff's inefficiency, independent of peers. */
+  handoffBreakdownScore: number;
+  /** 0-100 how statistically unusual this handoff is relative to other handoffs in the project. */
+  anomalyScore: number;
+  isAnomaly: boolean;
+  severity: SeverityLevel;
+  method: "iqr" | "isolation_forest";
+  features: HandoffFeatures;
+  explanation: string;
+  recommendation: string;
+}
+
+export interface DashboardSummary {
+  overallRisk: SeverityLevel;
+  healthScore: number;
+  totalAnomalies: number;
+  contextSwitchingAnomalies: number;
+  handoffBreakdownAnomalies: number;
+  hiddenWaitingAnomalies: number;
+  highRiskTasks: number;
+}
+
+export interface WaitingTimeFeatures {
+  idleHours: number;
+  waitingFrequency: number;
+  currentIdleHours: number;
+}
+
+export interface WaitingTimeResult {
+  taskId: string;
+  taskTitle: string | null;
+  waitingTimeScore: number;
+  anomalyScore: number;
+  isAnomaly: boolean;
+  isHighWaitingTime: boolean;
+  severity: SeverityLevel;
+  method: "iqr" | "isolation_forest";
+  features: WaitingTimeFeatures;
+  explanation: string;
+  recommendation: string;
+}
+
+export interface RiskFeatures {
+  priority: PriorityLevel;
+  totalDependents: number;
+  blockedDependents: number;
+  daysUntilDue: number | null;
+}
+
+export interface RiskScoreResult {
+  taskId: string;
+  taskTitle: string | null;
+  riskScore: number;
+  riskLevel: SeverityLevel;
+  ruleScore: number;
+  waitingTimeAnomalyScore: number;
+  isWaitingTimeAnomaly: boolean;
+  features: RiskFeatures;
+  reasons: string[];
+  explanation: string;
+}
+
+export interface InsightsDashboardResult {
+  summary: DashboardSummary;
+  contextSwitching: ContextSwitchingResult[];
+  handoffBreakdowns: HandoffResult[];
+  hiddenWaiting: WaitingTimeResult[];
+  riskScores: RiskScoreResult[];
+  recommendations: string[];
+  computedAt: string;
+}
