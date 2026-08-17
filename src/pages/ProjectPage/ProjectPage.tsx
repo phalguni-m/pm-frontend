@@ -14,7 +14,7 @@ import { StripedBar } from "@/components/primitives/StripedBar";
 import { Table, type TableColumn, type TableRowData } from "@/components/primitives/Table";
 import { NewSectionDialog } from "@/components/project/NewSectionDialog";
 import { TasksIcon, HistoryIcon, BlockedIcon, ComposeIcon } from "@/components/icons";
-import { formatDuration, projectMarkOf } from "@/lib/format";
+import { formatDuration, projectMarkOf, sentenceCase } from "@/lib/format";
 import type { SectionView, TaskIntelligence, TaskView } from "@/types/ui";
 
 interface SectionRow {
@@ -314,7 +314,7 @@ export function ProjectPage() {
                 <div className={styles.waitingRows}>
                   {waitingByCause.map(({ cause, count }) => (
                     <div key={cause.id} className={styles.waitingRow}>
-                      <span className={styles.waitingCauseLabel}>{cause.name}</span>
+                      <span className={styles.waitingCauseLabel}>{sentenceCase(cause.name)}</span>
                       <span className={styles.waitingInlineBarTrack}>
                         <span
                           className={styles.waitingInlineBarFill}

@@ -12,7 +12,7 @@ import { CardGrid } from "@/components/primitives/CardGrid";
 import { ProjectsTable, type ProjectsRow } from "@/components/project/ProjectsTable";
 import { TimelineCard, type TimelineTask } from "@/components/project/TimelineCard";
 import { TasksIcon, HistoryIcon, BlockedIcon } from "@/components/icons";
-import { formatDuration } from "@/lib/format";
+import { formatDuration, sentenceCase } from "@/lib/format";
 import type { StatusCounts, TaskView } from "@/types/ui";
 
 function emptyCounts(): StatusCounts {
@@ -121,7 +121,7 @@ export function HomePage() {
           title="Attention"
           subtitle="What needs you now."
           footer={{
-            message: waitingByCause[0] ? `Biggest bottleneck: ${waitingByCause[0].cause.name}` : "No bottlenecks right now",
+            message: waitingByCause[0] ? `Biggest bottleneck: ${sentenceCase(waitingByCause[0].cause.name)}` : "No bottlenecks right now",
             linkLabel: "View all",
             onLinkClick: () => navigate("/my-tasks"),
           }}
@@ -146,7 +146,7 @@ export function HomePage() {
             <div className={styles.causeRows}>
               {waitingByCause.slice(0, 3).map(({ cause, count }) => (
                 <div key={cause.id} className={styles.causeRow}>
-                  <span className={styles.causeLabel}>{cause.name}</span>
+                  <span className={styles.causeLabel}>{sentenceCase(cause.name)}</span>
                   <span className={`${styles.causeCount} tabular`}>{count}</span>
                 </div>
               ))}

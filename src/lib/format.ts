@@ -68,6 +68,14 @@ export function riskTierOf(riskScore: number): 1 | 2 | 3 | 4 | 5 {
   return Math.min(5, Math.max(1, tier)) as 1 | 2 | 3 | 4 | 5;
 }
 
+// Display-only formatting — never applied to stored/compared/keyed values.
+// Uppercases the first character only; the rest of the string (including any
+// further words) is left exactly as-is.
+export function sentenceCase(value: string): string {
+  if (value.length === 0) return value;
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 export function initialsOf(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "";

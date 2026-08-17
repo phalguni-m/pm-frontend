@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { formatWaitingDuration } from "@/lib/format";
+import { formatWaitingDuration, sentenceCase } from "@/lib/format";
 import styles from "@/components/primitives/WaitingIndicator/WaitingIndicator.module.css";
 
 export interface WaitingIndicatorProps {
@@ -43,7 +43,7 @@ export function WaitingIndicator({ waitingSince, causeName }: WaitingIndicatorPr
       <span className={styles.separator} aria-hidden="true">
         &middot;
       </span>
-      <span className={styles.cause}>{causeName}</span>
+      <span className={styles.cause}>{sentenceCase(causeName)}</span>
     </span>
   );
 }

@@ -98,7 +98,7 @@ const SEEDS: HistorySeed[] = [
     eventType: "status_changed",
     changes: [
       { field: "status", from: "in_progress", to: "waiting" },
-      { field: "delayCause", from: null, to: "Dependency" },
+      { field: "delayCause", from: null, to: "dependency blocked" },
     ],
     createdAt: "2026-08-05T08:00:00.000Z",
   },
@@ -125,7 +125,7 @@ const SEEDS: HistorySeed[] = [
     eventType: "status_changed",
     changes: [
       { field: "status", from: "in_progress", to: "waiting" },
-      { field: "delayCause", from: null, to: "External input" },
+      { field: "delayCause", from: null, to: "design not ready" },
     ],
     createdAt: "2026-08-02T09:00:00.000Z",
   },
@@ -168,7 +168,7 @@ const SEEDS: HistorySeed[] = [
     eventType: "status_changed",
     changes: [
       { field: "status", from: "in_progress", to: "waiting" },
-      { field: "delayCause", from: null, to: "Approval" },
+      { field: "delayCause", from: null, to: "api delay" },
     ],
     createdAt: "2026-08-07T10:00:00.000Z",
   },

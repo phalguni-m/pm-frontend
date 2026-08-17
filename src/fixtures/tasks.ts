@@ -112,7 +112,7 @@ const SEEDS: TaskSeed[] = [
     sectionId: SECTION_CORE_TRIAGE_ID,
     parentTaskId: null,
     priority: "high",
-    state: waiting("delay-dependency", "2026-08-05T08:00:00.000Z"),
+    state: waiting("aa72a61a-a0f8-45a8-8e7f-c7bcd2a14280", "2026-08-05T08:00:00.000Z"),
     startDate: daysFromNow(-52), // 56-day duration, preserved
     dueDate: daysFromNow(4),
     position: 2,
@@ -130,7 +130,7 @@ const SEEDS: TaskSeed[] = [
     sectionId: SECTION_CORE_TRIAGE_ID,
     parentTaskId: null,
     priority: "critical",
-    state: waiting("delay-external-input", "2026-08-02T09:00:00.000Z"),
+    state: waiting("a3a16837-2721-45fa-86ce-7719210b40d1", "2026-08-02T09:00:00.000Z"),
     startDate: daysFromNow(-56), // 65-day duration, preserved
     dueDate: daysFromNow(9),
     position: 3,
@@ -278,7 +278,7 @@ const SEEDS: TaskSeed[] = [
     sectionId: SECTION_DESIGN_ID,
     parentTaskId: null,
     priority: "low",
-    state: waiting("delay-review", "2026-08-08T12:00:00.000Z"),
+    state: waiting("bad8fdf4-ce6c-453f-aca8-8f56e053ad3c", "2026-08-08T12:00:00.000Z"),
     startDate: daysFromNow(-21), // 32-day duration, preserved
     dueDate: daysFromNow(11),
     position: 2,
@@ -390,7 +390,7 @@ const SEEDS: TaskSeed[] = [
     sectionId: SECTION_BACKEND_ID,
     parentTaskId: null,
     priority: "critical",
-    state: waiting("delay-approval", "2026-08-07T10:00:00.000Z"),
+    state: waiting("44a6ea27-9abf-4271-a012-003323013524", "2026-08-07T10:00:00.000Z"),
     startDate: daysFromNow(-41), // 47-day duration, preserved
     dueDate: daysFromNow(6),
     position: 1,
