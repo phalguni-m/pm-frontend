@@ -232,6 +232,12 @@ export function ProjectPage() {
         <div className={styles.headerActions}>
           <AvatarGroup members={project.members} size={28} />
           <div className={styles.headerButtons}>
+            <Button variant="default" onClick={() => navigate(`/projects/${project.id}/graph`)}>
+              Graph
+            </Button>
+            <Button variant="default" onClick={() => navigate(`/projects/${project.id}/insights`)}>
+              Insights
+            </Button>
             <Button variant="primary" icon={<ComposeIcon size={16} />} onClick={() => setIsNewSectionOpen(true)}>
               Section
             </Button>
