@@ -115,11 +115,7 @@ export function InsightsPage() {
     let cancelled = false;
     setState({ status: "loading" });
 
-    getInsightsDashboard(
-  projectId === "project-healthbridge"
-    ? "99999999-9999-9999-9999-999999999999"
-    : projectId,
-)
+    getInsightsDashboard(projectId)
       .then((data) => {
         if (!cancelled) setState({ status: "success", data });
       })
