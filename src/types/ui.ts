@@ -51,7 +51,11 @@ export interface DelayCause {
 
 export type TaskState =
   | { status: Exclude<StatusType, "waiting">; delayCause: null; waitingSince: null }
-  | { status: "waiting"; delayCause: DelayCause; waitingSince: string };
+  // delayCause/waitingSince are nullable here because the real API can
+  // return status: "waiting" with an unresolved delay_cause_id and no
+  // status-entry timestamp — the non-null requirement this variant used to
+  // have was unsatisfiable against live data (see src/lib/taskAdapter.ts).
+  | { status: "waiting"; delayCause: DelayCause | null; waitingSince: string | null };
 
 export function isWaiting(
   state: TaskState,

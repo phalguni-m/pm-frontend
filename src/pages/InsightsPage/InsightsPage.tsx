@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/primitives/EmptyState";
 import { TallyMeter } from "@/components/primitives/TallyMeter";
 import { PriorityChip } from "@/components/primitives/PriorityChip";
 import { Table, type TableColumn, type TableRowData } from "@/components/primitives/Table";
-import { PROJECT_BY_ID } from "@/fixtures";
+import { useTasksContext, baseProjectOf } from "@/store";
 import { getInsightsDashboard, InsightsApiError } from "@/lib/insightsApi";
 import type {
   ContextSwitchingResult,
@@ -105,7 +105,8 @@ function waitingTimeRows(items: WaitingTimeResult[]): TableRowData<WaitingTimeRe
 
 export function InsightsPage() {
   const { projectId } = useParams<{ projectId: string }>();
-  const project = projectId ? PROJECT_BY_ID[projectId] : undefined;
+  const { state: tasksState } = useTasksContext();
+  const project = projectId ? baseProjectOf(projectId, tasksState.projectsById) : undefined;
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const [attempt, setAttempt] = useState(0);
 

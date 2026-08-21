@@ -15,7 +15,7 @@ critical red + high orange) is restricted to seven specific cases; everything
 else is tone, weight, or position. No component library, no CSS framework, no
 state management library — CSS Modules + design tokens only.
 
-Built in ordered blocks (0 through 11 so far), each gated on `npx tsc --noEmit`
+Built in ordered blocks (0 through 11 so far), each gated on `npx tsc -b`
 and `npm run build` passing clean before moving on. No git repo exists in this
 directory — nothing is committed anywhere; disk state is the only state.
 
@@ -679,9 +679,17 @@ same formula (`dayOffset / range.totalDays`, same `range.rangeStart`/
 ```powershell
 npm install
 npm run dev        # http://localhost:5173 (or whatever port Vite picks)
-npx tsc --noEmit    # type check
+npx tsc -b          # type check (bare --noEmit silently no-ops in this repo — see Typechecking below)
 npm run build       # production build
 ```
 
-No test suite exists yet. Gate for any change: `tsc --noEmit` clean + `build`
+No test suite exists yet. Gate for any change: `tsc -b` clean + `build`
 succeeds, checked in both themes where the change touches visuals.
+
+## Typechecking
+
+Do NOT use `npx tsc --noEmit` in this repo. The root tsconfig.json has `"files": []`
+and only project references, so the bare command exits 0 without checking any files —
+it reports clean even when there are real type errors.
+
+Use `npx tsc -b` (add `--force` to bypass the build cache) or `npm run build`.

@@ -83,7 +83,7 @@ export function TaskPanel({
   const [description, setDescription] = useState(task.description ?? "");
   const [draftStatus, setDraftStatus] = useState<StatusType>(task.state.status);
   const [draftDelayCauseId, setDraftDelayCauseId] = useState<string | null>(
-    task.state.status === "waiting" ? task.state.delayCause.id : null,
+    task.state.status === "waiting" ? task.state.delayCause?.id ?? null : null,
   );
   const [draftPriority, setDraftPriority] = useState<PriorityLevel>(task.priority);
   const [draftAssigneeIds, setDraftAssigneeIds] = useState<string[]>(task.assignees.map((m) => m.id));
@@ -94,7 +94,7 @@ export function TaskPanel({
     setTitle(task.title);
     setDescription(task.description ?? "");
     setDraftStatus(task.state.status);
-    setDraftDelayCauseId(task.state.status === "waiting" ? task.state.delayCause.id : null);
+    setDraftDelayCauseId(task.state.status === "waiting" ? task.state.delayCause?.id ?? null : null);
     setDraftPriority(task.priority);
     setDraftAssigneeIds(task.assignees.map((m) => m.id));
     setActiveTab("details");
@@ -179,7 +179,7 @@ export function TaskPanel({
             <StatusPill status={draftStatus} />
             {draftStatus === "waiting" && draftDelayCauseId && (
               <WaitingIndicator
-                waitingSince={task.state.status === "waiting" ? task.state.waitingSince : new Date().toISOString()}
+                waitingSince={task.state.status === "waiting" && task.state.waitingSince !== null ? task.state.waitingSince : new Date().toISOString()}
                 causeName={delayCauses.find((c) => c.id === draftDelayCauseId)?.name ?? ""}
               />
             )}

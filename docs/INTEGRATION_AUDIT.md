@@ -351,3 +351,64 @@ The entire frontend is currently 100% fixture-driven — **zero `fetch`/`axios`/
 11. **No `job_role` lookup** — `AppUser.job_role_id` is a bare unlinked text field; no table or endpoint resolves it to a label.
 
 No implementation was attempted for any of the above — this section is reporting gaps only, per the audit's instructions.
+
+---
+
+## 6. Frontend workarounds for missing/incomplete endpoints
+
+Unlike the rest of this document, the two items below are not read-only findings — they are
+frontend-side patches, implemented entirely under `src/lib/`, that let the app degrade
+gracefully around the two gaps until the real backend work lands. Both stay behind existing
+data seams (`src/lib/projectApi.ts`'s `getProjectHistory`, and `MembersPage.tsx`'s consumption
+of `Member[]`) and change no fetch path, request shape, or type definition beyond what's listed.
+
+### 6.1 — History feed `taskTitle` hydration
+
+**Substitutes for:** `GET /api/history/projects/:projectId` not joining task titles into its
+response (`docs/API_MISMATCH_AUDIT.md`, Step 3, Row 3 — the route returns raw `task_history`
+rows with `task_id`/`event_type`/`user_id`/`created_at` only; `taskTitle` has no source field
+at all).
+
+**What it does:** `src/lib/historyHydration.ts`'s `hydrateProjectHistory(projectId)` calls the
+existing `getProjectHistory(projectId)` plus one new call to `GET /api/tasks/project/:projectId`
+(a real, working, already-mounted route — `taskService.listTasks`) per project, builds a
+`Map<taskId, title>`, and fills in `taskTitle` on every row that's missing it. One fetch per
+project for tasks, one fetch per project for history — never per row.
+
+**What it does NOT fix:** `userName` and `status` stay unresolved. The only backend route that
+ever resolves a `user_id` to a name/email is `GET /api/tasks/:taskId/assignees`
+(`assigneeService.listAssignees`), which is scoped to a single task — using it to hydrate
+`userName` across a project's full history feed would mean one HTTP request per task
+represented in that feed (a real N+1), which this workaround deliberately does not do. Every
+row's `userName` still falls back to `HistoryPage.tsx`'s existing "Unknown user" string. This
+was a deliberate scope cut, not an oversight — see item 10 in "Frontend needs the API does not
+provide" above, which already flagged the missing user-directory endpoint before this
+workaround existed.
+
+**Files touched:**
+- `src/lib/historyHydration.ts` — new file, both exported items marked `WORKAROUND`.
+- `src/pages/HistoryPage/HistoryPage.tsx` — swapped its `getProjectHistory` import/call for
+  `hydrateProjectHistory`; no other change. `HistoryFeedEntry`'s type is unchanged.
+
+**Delete or revert when the real endpoint ships:**
+1. Delete `src/lib/historyHydration.ts` entirely.
+2. In `src/pages/HistoryPage/HistoryPage.tsx`: revert the import back to
+   `getProjectHistory` from `@/lib/projectApi`, and change `hydrateProjectHistory(project.id)`
+   back to `getProjectHistory(project.id)`. No other line in that file needs to change.
+3. Confirm `docs/API_MISMATCH_AUDIT.md` Step 3/Row 3 no longer applies (i.e. the real response
+   already contains `taskTitle`) before deleting — if it now contains `taskTitle` but still not
+   `userName`/`status`, keep a slimmed version of this file rather than deleting it outright.
+
+### 6.2 — Workspace members list
+
+**Not built.** `GET /api/workspaces/:workspaceId/members` does not exist
+(`docs/API_MISMATCH_AUDIT.md`, Step 2, row 1), and the only client-derivable substitute — a
+union of task assignees and history actors, per the original workaround plan — cannot produce
+the `Member` shape `MembersPage.tsx` requires (`name`, `email`, `initials` are all non-optional
+fields it reads directly). The only backend route that ever resolves a `user_id` to a name/email
+is the same per-task `GET /api/tasks/:taskId/assignees` from 6.1, and building a workspace-wide
+member list from it means fetching assignees for every task in every project in the workspace —
+an N+1 pattern, not "one fetch per collection." Rather than ship a members list that displays
+raw UUIDs instead of names, this was intentionally left unbuilt. `MembersPage.tsx` keeps
+rendering its existing error state (see Fix 2, prior session) until either
+`GET /api/workspaces/:workspaceId/members` ships, or some other bulk user-lookup endpoint does.

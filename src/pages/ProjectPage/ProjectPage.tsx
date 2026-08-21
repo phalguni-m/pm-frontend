@@ -77,7 +77,7 @@ export function ProjectPage() {
   const waitingHoursTotal = useMemo(() => {
     let total = 0;
     for (const task of allTasks) {
-      if (task.state.status === "waiting") {
+      if (task.state.status === "waiting" && task.state.waitingSince !== null) {
         total += (Date.now() - new Date(task.state.waitingSince).getTime()) / (1000 * 60 * 60);
       }
     }
@@ -87,7 +87,7 @@ export function ProjectPage() {
   const waitingByCause = useMemo(() => {
     const counts = new Map<string, number>();
     for (const task of allTasks) {
-      if (task.state.status === "waiting") {
+      if (task.state.status === "waiting" && task.state.delayCause !== null) {
         const causeId = task.state.delayCause.id;
         counts.set(causeId, (counts.get(causeId) ?? 0) + 1);
       }
