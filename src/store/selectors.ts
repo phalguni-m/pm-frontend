@@ -101,15 +101,15 @@ export function baseProjectOf(projectId: string, projectsById: Record<string, Pr
   return projectsById[projectId] ?? PROJECT_BY_ID[projectId];
 }
 
-// Every project id this app currently knows about: live projectsById ids
-// plus fixture PROJECTS_WITH_TASKS ids, deduped. Live mode adds real
-// projects on top of the fixture set rather than replacing it — the two
-// live projects with no section/task data yet (see TasksContext.tsx) still
-// need an id to appear in this list with empty sections.
+// Every project id this app currently knows about. Live mode (state.projectsById
+// populated) replaces the fixture set entirely rather than unioning with it —
+// the sidebar/projects index should show only real backend projects once any
+// exist, not fixture projects alongside them. Fixture mode (projectsById
+// empty) falls back to the fixture PROJECTS_WITH_TASKS ids exactly as before.
 function allProjectIds(projectsById: Record<string, ProjectRecord>): string[] {
-  const ids = new Set<string>(PROJECTS_WITH_TASKS.map((p) => p.id));
-  for (const id of Object.keys(projectsById)) ids.add(id);
-  return Array.from(ids);
+  const liveIds = Object.keys(projectsById);
+  if (liveIds.length > 0) return liveIds;
+  return PROJECTS_WITH_TASKS.map((p) => p.id);
 }
 
 export function useTask(taskId: string | undefined): TaskView | undefined {
