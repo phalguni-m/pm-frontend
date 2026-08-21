@@ -57,7 +57,7 @@ export function LoginPage() {
 
       localStorage.setItem("pm-auth", JSON.stringify(session));
 
-      navigate("/", { replace: true });
+      navigate("/app", { replace: true });
     } catch (err) {
       setError(
         err instanceof Error
