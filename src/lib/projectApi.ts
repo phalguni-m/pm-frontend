@@ -119,12 +119,34 @@ export async function getWorkspaceProjects(
   );
 }
 
+interface BackendHistoryEntry {
+  id: string;
+  task_id: string;
+  task_snapshot: {
+    status?: string | null;
+  } | null;
+  user_id: string | null;
+  event_type: string | null;
+  created_at: string | null;
+}
+
 export async function getProjectHistory(
   projectId: string,
 ): Promise<HistoryFeedEntry[]> {
-  return getJson<HistoryFeedEntry[]>(
+  const rows = await getJson<BackendHistoryEntry[]>(
     `/api/history/projects/${projectId}`,
   );
+
+  return rows.map((row) => ({
+    id: row.id,
+    taskId: row.task_id,
+    taskTitle: null,
+    userId: row.user_id,
+    userName: null,
+    eventType: row.event_type ?? "",
+    status: row.task_snapshot?.status ?? null,
+    createdAt: row.created_at ?? "",
+  }));
 }
 
 // Raw backend Task rows for one project — GET /api/tasks/project/:projectId
