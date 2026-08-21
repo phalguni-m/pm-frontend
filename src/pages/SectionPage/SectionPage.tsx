@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import styles from "@/pages/SectionPage/SectionPage.module.css";
 import { NotFoundPage } from "@/pages/NotFoundPage";
-import { PROJECT_BY_ID, TASK_INTELLIGENCE_BY_ID, DELAY_CAUSES, HISTORY } from "@/fixtures";
-import { useSection, useTask, useComments, useTasksByIds, useTasksContext } from "@/store";
+import { TASK_INTELLIGENCE_BY_ID, DELAY_CAUSES, HISTORY } from "@/fixtures";
+import { useSection, useTask, useComments, useTasksByIds, useTasksContext, baseProjectOf } from "@/store";
 import { CURRENT_USER_ID } from "@/lib/constants";
 import { Card } from "@/components/primitives/Card";
 import { Button } from "@/components/primitives/Button";
@@ -59,10 +59,10 @@ function sortTasks(tasks: TaskView[], sortId: string): TaskView[] {
 export function SectionPage() {
   const { projectId, sectionId } = useParams<{ projectId: string; sectionId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { dispatch } = useTasksContext();
+  const { state, dispatch } = useTasksContext();
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
 
-  const project = projectId ? PROJECT_BY_ID[projectId] : undefined;
+  const project = projectId ? baseProjectOf(projectId, state.projectsById) : undefined;
   const section = useSection(sectionId);
 
   const sortId = searchParams.get("sort") ?? "default";
@@ -140,7 +140,7 @@ export function SectionPage() {
         width: "content",
         cardSlot: "meta",
         render: (task) =>
-          task.state.status === "waiting" ? (
+          task.state.status === "waiting" && task.state.waitingSince !== null && task.state.delayCause !== null ? (
             <span className={styles.waitingCell}>
               <WaitingIndicator waitingSince={task.state.waitingSince} causeName={task.state.delayCause.name} />
             </span>

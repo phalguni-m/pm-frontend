@@ -10,8 +10,8 @@ import { PriorityChip } from "@/components/primitives/PriorityChip";
 import { Button } from "@/components/primitives/Button";
 import { DependencyGraph } from "@/components/graph/DependencyGraph";
 import { BlockedIcon } from "@/components/icons";
-import { PROJECT_BY_ID, DEPENDENCIES } from "@/fixtures";
-import { useTasksContext } from "@/store";
+import { DEPENDENCIES } from "@/fixtures";
+import { useTasksContext, baseProjectOf } from "@/store";
 import { computeGraphLayout } from "@/lib/graph";
 import { computeCriticalPath, type TaskCPMResult } from "@/lib/criticalPath";
 import type { TaskView } from "@/types/ui";
@@ -38,7 +38,7 @@ export function GraphPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { state } = useTasksContext();
-  const project = projectId ? PROJECT_BY_ID[projectId] : undefined;
+  const project = projectId ? baseProjectOf(projectId, state.projectsById) : undefined;
 
   const projectTasks = useMemo(() => {
     if (!project) return [];

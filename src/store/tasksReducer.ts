@@ -1,6 +1,6 @@
 import { MEMBER_BY_ID } from "@/fixtures";
 import { CURRENT_USER_ID } from "@/lib/constants";
-import type { Comment, SectionView, TaskDraft, TaskPatch, TaskState, TaskView } from "@/types/ui";
+import type { Comment, ProjectView, SectionView, TaskDraft, TaskPatch, TaskState, TaskView } from "@/types/ui";
 
 // Store-shape for a section: everything SectionView has except `tasks`,
 // which is always live-derived from tasksById (same reasoning as why
@@ -11,13 +11,27 @@ import type { Comment, SectionView, TaskDraft, TaskPatch, TaskState, TaskView } 
 // one level up.
 export type SectionRecord = Omit<SectionView, "tasks">;
 
+// Store-shape for a project: everything ProjectView has except `sections`
+// and `statusCounts`, both always live-derived the same way SectionRecord
+// omits `tasks` above. Only populated in live mode (src/store/TasksContext.tsx) —
+// fixture mode leaves this empty and useProject/useProjectsIndex
+// (src/store/selectors.ts) fall back to the fixture PROJECT_BY_ID/
+// PROJECTS_WITH_TASKS exports exactly as before.
+export type ProjectRecord = Omit<ProjectView, "sections" | "statusCounts">;
+
 export interface TasksState {
   tasksById: Record<string, TaskView>;
   sectionsById: Record<string, SectionRecord>;
+  projectsById: Record<string, ProjectRecord>;
   commentsByTaskId: Record<string, Comment[]>;
 }
 
-export function initTasksState(tasks: TaskView[], sections: SectionRecord[], comments: Comment[]): TasksState {
+export function initTasksState(
+  tasks: TaskView[],
+  sections: SectionRecord[],
+  comments: Comment[],
+  projects: ProjectRecord[] = [],
+): TasksState {
   const tasksById: Record<string, TaskView> = {};
   for (const task of tasks) {
     tasksById[task.id] = task;
@@ -28,12 +42,17 @@ export function initTasksState(tasks: TaskView[], sections: SectionRecord[], com
     sectionsById[section.id] = section;
   }
 
+  const projectsById: Record<string, ProjectRecord> = {};
+  for (const project of projects) {
+    projectsById[project.id] = project;
+  }
+
   const commentsByTaskId: Record<string, Comment[]> = {};
   for (const comment of comments) {
     (commentsByTaskId[comment.taskId] ??= []).push(comment);
   }
 
-  return { tasksById, sectionsById, commentsByTaskId };
+  return { tasksById, sectionsById, projectsById, commentsByTaskId };
 }
 
 export type TasksAction =

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/primitives/PageHeader";
+import { EmptyState } from "@/components/primitives/EmptyState";
+import { Skeleton } from "@/components/primitives/Skeleton";
 import {
   getWorkspaceMembers,
   type Member,
@@ -7,32 +9,33 @@ import {
 
 const WORKSPACE_ID = import.meta.env.VITE_DEV_WORKSPACE_ID;
 
+type LoadState =
+  | { status: "loading" }
+  | { status: "error"; message: string }
+  | { status: "success"; data: Member[] };
+
 export function MembersPage() {
-  const [members, setMembers] = useState<Member[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [state, setState] = useState<LoadState>({ status: "loading" });
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    async function loadMembers() {
-      try {
-        setLoading(true);
-        setError(null);
+    let cancelled = false;
+    setState({ status: "loading" });
 
-        const data = await getWorkspaceMembers(WORKSPACE_ID);
-        setMembers(data);
-      } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Failed to load members",
-        );
-      } finally {
-        setLoading(false);
-      }
-    }
+    getWorkspaceMembers(WORKSPACE_ID)
+      .then((data) => {
+        if (!cancelled) setState({ status: "success", data });
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        const message = err instanceof Error ? err.message : "Failed to load members";
+        setState({ status: "error", message });
+      });
 
-    loadMembers();
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [attempt]);
 
   return (
     <div>
@@ -41,21 +44,32 @@ export function MembersPage() {
         description="People in this workspace"
       />
 
-      {loading && <p>Loading members...</p>}
-
-      {error && (
-        <p style={{ color: "red" }}>
-          {error}
-        </p>
+      {state.status === "loading" && (
+        <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 12 }}>
+          <Skeleton height={56} radius="md" />
+          <Skeleton height={56} radius="md" />
+          <Skeleton height={56} radius="md" />
+        </div>
       )}
 
-      {!loading && !error && members.length === 0 && (
-        <p>No members found.</p>
-      )}
-
-      {!loading && !error && members.length > 0 && (
+      {state.status === "error" && (
         <div style={{ marginTop: 24 }}>
-          {members.map((member) => (
+          <EmptyState
+            message={state.message}
+            action={{ label: "Retry", onClick: () => setAttempt((n) => n + 1) }}
+          />
+        </div>
+      )}
+
+      {state.status === "success" && state.data.length === 0 && (
+        <div style={{ marginTop: 24 }}>
+          <EmptyState message="No members found." />
+        </div>
+      )}
+
+      {state.status === "success" && state.data.length > 0 && (
+        <div style={{ marginTop: 24 }}>
+          {state.data.map((member) => (
             <div
               key={member.id}
               style={{

@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/primitives/PageHeader";
+import { EmptyState } from "@/components/primitives/EmptyState";
+import { Skeleton } from "@/components/primitives/Skeleton";
 import {
   getWorkspaceProjects,
-  getProjectHistory,
   type HistoryFeedEntry,
 } from "@/lib/projectApi";
+import { hydrateProjectHistory } from "@/lib/historyHydration";
 
 const WORKSPACE_ID = import.meta.env.VITE_DEV_WORKSPACE_ID;
 
@@ -12,23 +14,28 @@ interface HistoryWithProject extends HistoryFeedEntry {
   projectName: string;
 }
 
+type LoadState =
+  | { status: "loading" }
+  | { status: "error"; message: string }
+  | { status: "success"; data: HistoryWithProject[] };
+
 export function HistoryPage() {
-  const [history, setHistory] = useState<HistoryWithProject[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [state, setState] = useState<LoadState>({ status: "loading" });
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    async function loadHistory() {
-      try {
-        setLoading(true);
-        setError(null);
+    let cancelled = false;
 
+    async function loadHistory() {
+      setState({ status: "loading" });
+
+      try {
         const projects =
           await getWorkspaceProjects(WORKSPACE_ID);
 
         const results = await Promise.all(
           projects.map(async (project) => {
-            const feed = await getProjectHistory(project.id);
+            const feed = await hydrateProjectHistory(project.id);
 
             return feed.map((entry) => ({
               ...entry,
@@ -45,20 +52,20 @@ export function HistoryPage() {
               new Date(a.createdAt).getTime(),
           );
 
-        setHistory(combined);
+        if (!cancelled) setState({ status: "success", data: combined });
       } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Failed to load history",
-        );
-      } finally {
-        setLoading(false);
+        if (cancelled) return;
+        const message = err instanceof Error ? err.message : "Failed to load history";
+        setState({ status: "error", message });
       }
     }
 
     loadHistory();
-  }, []);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [attempt]);
 
   return (
     <div>
@@ -67,21 +74,32 @@ export function HistoryPage() {
         description="Recent activity across your projects"
       />
 
-      {loading && <p>Loading history...</p>}
-
-      {error && (
-        <p style={{ color: "red" }}>
-          {error}
-        </p>
+      {state.status === "loading" && (
+        <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 12 }}>
+          <Skeleton height={64} radius="md" />
+          <Skeleton height={64} radius="md" />
+          <Skeleton height={64} radius="md" />
+        </div>
       )}
 
-      {!loading && !error && history.length === 0 && (
-        <p>No history found.</p>
-      )}
-
-      {!loading && !error && history.length > 0 && (
+      {state.status === "error" && (
         <div style={{ marginTop: 24 }}>
-          {history.map((entry) => (
+          <EmptyState
+            message={state.message}
+            action={{ label: "Retry", onClick: () => setAttempt((n) => n + 1) }}
+          />
+        </div>
+      )}
+
+      {state.status === "success" && state.data.length === 0 && (
+        <div style={{ marginTop: 24 }}>
+          <EmptyState message="No history found." />
+        </div>
+      )}
+
+      {state.status === "success" && state.data.length > 0 && (
+        <div style={{ marginTop: 24 }}>
+          {state.data.map((entry) => (
             <div
               key={entry.id}
               style={{

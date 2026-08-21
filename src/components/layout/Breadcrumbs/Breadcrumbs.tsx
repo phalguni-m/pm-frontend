@@ -1,6 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import styles from "@/components/layout/Breadcrumbs/Breadcrumbs.module.css";
-import { PROJECT_BY_ID, SECTION_BY_ID } from "@/fixtures";
+import { SECTION_BY_ID } from "@/fixtures";
+import { useTasksContext, baseProjectOf } from "@/store";
 
 const TRUNCATE_AT = 24;
 
@@ -17,11 +18,12 @@ interface Crumb {
 
 export function Breadcrumbs() {
   const { projectId, sectionId } = useParams<{ projectId?: string; sectionId?: string }>();
+  const { state } = useTasksContext();
 
   const crumbs: Crumb[] = [{ key: "workspace", label: "Group 37", to: "/" }];
 
   if (projectId) {
-    const project = PROJECT_BY_ID[projectId];
+    const project = baseProjectOf(projectId, state.projectsById);
     if (project) {
       crumbs.push({
         key: "project",

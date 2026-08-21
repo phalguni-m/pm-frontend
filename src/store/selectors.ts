@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { PROJECT_BY_ID, PROJECTS_WITH_TASKS } from "@/fixtures";
 import { useTasksContext } from "@/store/TasksContext";
-import type { SectionRecord } from "@/store/tasksReducer";
+import type { ProjectRecord, SectionRecord } from "@/store/tasksReducer";
 import type { Comment, ProjectView, SectionView, StatusCounts, TaskRef, TaskView } from "@/types/ui";
 
 const EMPTY_COMMENTS: Comment[] = [];
@@ -88,6 +88,30 @@ function countsOf(tasks: TaskView[]): StatusCounts {
   return counts;
 }
 
+// Project identity: live state.projectsById wins when it has an entry for
+// this id (live mode, src/store/TasksContext.tsx), otherwise falls back to
+// the fixture PROJECT_BY_ID exactly as before. Fixture mode never populates
+// projectsById, so this is a no-op fallback for it — same "live wins if
+// present" pattern liveSectionsOf/liveTopLevelTasks already establish for
+// sections/tasks. Exported so the pages that resolve project identity
+// directly (GraphPage, SectionPage, InsightsPage, Breadcrumbs — none of
+// them go through useProject) can reuse this instead of duplicating the
+// fallback logic four times.
+export function baseProjectOf(projectId: string, projectsById: Record<string, ProjectRecord>): ProjectRecord | undefined {
+  return projectsById[projectId] ?? PROJECT_BY_ID[projectId];
+}
+
+// Every project id this app currently knows about: live projectsById ids
+// plus fixture PROJECTS_WITH_TASKS ids, deduped. Live mode adds real
+// projects on top of the fixture set rather than replacing it — the two
+// live projects with no section/task data yet (see TasksContext.tsx) still
+// need an id to appear in this list with empty sections.
+function allProjectIds(projectsById: Record<string, ProjectRecord>): string[] {
+  const ids = new Set<string>(PROJECTS_WITH_TASKS.map((p) => p.id));
+  for (const id of Object.keys(projectsById)) ids.add(id);
+  return Array.from(ids);
+}
+
 export function useTask(taskId: string | undefined): TaskView | undefined {
   const { state } = useTasksContext();
   return useMemo(() => {
@@ -117,7 +141,7 @@ export function useProject(projectId: string | undefined): ProjectView | undefin
   const { state } = useTasksContext();
   return useMemo(() => {
     if (!projectId) return undefined;
-    const project = PROJECT_BY_ID[projectId];
+    const project = baseProjectOf(projectId, state.projectsById);
     if (!project) return undefined;
 
     const sections = liveSectionsOf(projectId, state.sectionsById).map((section) => ({
@@ -131,22 +155,25 @@ export function useProject(projectId: string | undefined): ProjectView | undefin
     const allTopLevel = sections.flatMap((section) => section.tasks);
 
     return { ...project, sections, statusCounts: countsOf(allTopLevel) };
-  }, [projectId, state.sectionsById, state.tasksById]);
+  }, [projectId, state.projectsById, state.sectionsById, state.tasksById]);
 }
 
 export function useProjectsIndex(): ProjectView[] {
   const { state } = useTasksContext();
   return useMemo(
     () =>
-      PROJECTS_WITH_TASKS.map((project) => {
-        const sections = liveSectionsOf(project.id, state.sectionsById).map((section) => ({
-          ...section,
-          tasks: liveTopLevelTasks(section.id, state.tasksById),
-        }));
-        const allTopLevel = sections.flatMap((section) => section.tasks);
-        return { ...project, sections, statusCounts: countsOf(allTopLevel) };
-      }),
-    [state.sectionsById, state.tasksById],
+      allProjectIds(state.projectsById)
+        .map((id) => baseProjectOf(id, state.projectsById))
+        .filter((project): project is ProjectRecord => project !== undefined)
+        .map((project) => {
+          const sections = liveSectionsOf(project.id, state.sectionsById).map((section) => ({
+            ...section,
+            tasks: liveTopLevelTasks(section.id, state.tasksById),
+          }));
+          const allTopLevel = sections.flatMap((section) => section.tasks);
+          return { ...project, sections, statusCounts: countsOf(allTopLevel) };
+        }),
+    [state.projectsById, state.sectionsById, state.tasksById],
   );
 }
 
@@ -175,7 +202,7 @@ export function useMyTasks(userId: string): MyTaskRow[] {
       .filter((task) => !task.isDeleted && task.assignees.some((member) => member.id === userId))
       .map((task) => {
         const hydrated = hydrateTask(task, state.tasksById);
-        const project = PROJECT_BY_ID[hydrated.projectId];
+        const project = baseProjectOf(hydrated.projectId, state.projectsById);
         const section = hydrated.sectionId ? state.sectionsById[hydrated.sectionId] : undefined;
         return {
           task: hydrated,
@@ -192,7 +219,7 @@ export function useMyTasks(userId: string): MyTaskRow[] {
       if (!b.task.dueDate) return -1;
       return a.task.dueDate.localeCompare(b.task.dueDate) || a.task.id.localeCompare(b.task.id);
     });
-  }, [userId, state.tasksById, state.sectionsById]);
+  }, [userId, state.tasksById, state.sectionsById, state.projectsById]);
 }
 
 export function useComments(taskId: string | undefined): Comment[] {

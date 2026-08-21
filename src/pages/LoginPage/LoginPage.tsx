@@ -7,7 +7,7 @@ import { Button } from "@/components/primitives/Button";
 import styles from "./LoginPage.module.css";
 
 const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ??
+  (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
   "http://localhost:3001";
 
 interface AuthSession {
